@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>Aqua Spark App</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <script src='//whephiwums.com/sdk.js' data-zone='9180370' data-sdk='show_9180370'></script>
+    <link rel="stylesheet" href="css/aqua-style.css">
+    <script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-storage-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-analytics-compat.js"></script>
+    <script src="https://unpkg.com/@tonconnect/ui@latest/dist/tonconnect-ui.min.js"></script>
+</head>
+<body>
+    <div id="loadingOverlay" style="display: flex; position: fixed; inset: 0; background-color: rgba(255, 255, 255, 0.9); justify-content: center; align-items: center; z-index: 10000; color: #005f73; font-size: 1.2em; flex-direction: column; gap: 10px;">
+        <img src="assets/icons/loading-spinner.gif" alt="Loading..." width="50"> <span>Loading Aqua Spark...</span>
+    </div>
+
+    <header>
+        <div class="back-arrow" onclick="Telegram.WebApp.close()">✕</div> <h1>Aqua Spark</h1>
+        <div class="menu-dots" id="headerMenuButton">⋮<span id="notification-indicator" class="notification-dot" style="display: none;"></span></div>
+    </header>
+
+    <div id="headerMenuModal" class="modal header-menu-modal" style="display: none;">
+        <div class="modal-content">
+            <h3>Settings</h3>
+            <button id="menuCloseButton">Close Menu</button>
+            <button id="menuWalletButton">Wallet Connect</button> </div>
+    </div>
+
+    <div class="main-content">
+        <section class="user-stats">
+            <div class="metric">
+                <img src="assets/icons/gem-aqua.png" alt="Gem"> <span id="gems">0</span>
+            </div>
+            <div class="metric">
+                <img src="assets/icons/usdt-aqua.png" alt="USDT"> <span id="usdt">0.0000</span>
+            </div>
+            <div class="metric">
+                <img src="assets/icons/ton-aqua.png" alt="TON"> <span id="ton">0.0000</span>
+            </div>
+            <div class="profile-pic" id="profileNavButton"> <img src="assets/icons/user-avatar-aqua.png" alt="User Profile"> <span id="profile-notification-indicator" class="notification-dot-small" style="display: none;"></span>
+            </div>
+        </section>
+
+        <section id="earn" class="section earn-section active">
+            <div class="daily-bonus-section card-style" id="dailyBonusSection" style="display: none;">
+                <h2>✨ Daily Bonus ✨</h2>
+                <p>Log in each day for a special reward!</p>
+                <button class="action-button daily-bonus-button" id="claimDailyBonusButton">Claim Bonus</button>
+                <p id="dailyBonusTimer" class="cooldown-timer"></p>
+            </div>
+
+            <div class="banner-placeholder card-style">
+                <img src="assets/graphics/banner-aqua.png" alt="Aqua Spark Banner"> </div>
+
+            <div class="quest-section">
+                <h2>DAILY QUESTS <span class="badge" id="daily-quest-count">0</span></h2>
+                <ul class="quest-list" id="daily-quest-list">
+                    <li class="loading-placeholder"><p>Loading daily quests...</p></li>
+                </ul>
+            </div>
+            <div class="quest-section">
+                <h2>BASIC QUESTS <span class="badge" id="basic-quest-count">0</span></h2>
+                <ul class="quest-list" id="basic-quest-list">
+                     <li class="loading-placeholder"><p>Loading basic quests...</p></li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="wallet" class="section wallet-section">
+            <h2>Wallet</h2>
+            <div class="wallet-status disconnected">
+                <span id="connection-status">Disconnected</span>
+            </div>
+            <div class="balance-card usdt-card card-style">
+                <img src="assets/icons/usdt-aqua.png" alt="USDT Icon">
+                <div class="balance-info">
+                    <span id="wallet-usdt">0.0000</span>
+                    <small>USDT Balance</small>
+                </div>
+                <button class="withdraw-button action-button-secondary" disabled>Withdraw</button>
+            </div>
+            <div class="balance-card ton-card card-style">
+                <img src="assets/icons/ton-aqua.png" alt="TON Icon">
+                <div class="balance-info">
+                    <span id="wallet-ton">0.0000</span>
+                    <small>TON Balance</small>
+                </div>
+                <button class="withdraw-button action-button-secondary" disabled>Withdraw</button>
+            </div>
+            <p class="instruction" id="walletInstruction">Connect your TON wallet to manage and withdraw funds.</p>
+            <button class="connect-button action-button">CONNECT TON WALLET</button>
+            <div class="transaction-history card-style">
+                <h3>Transaction History</h3>
+                <ul id="transaction-list">
+                    <li>No transactions yet</li>
+                </ul>
+            </div>
+
+            <div id="withdraw-modal" class="modal withdraw-modal" style="display: none;">
+                <div class="modal-content card-style">
+                    <h3>Withdraw <span id="modal-currency-title"></span></h3>
+                    <label>Amount: <input type="number" id="withdraw-amount" min="0" step="0.0001" placeholder="0.0000"></label>
+                    <p class="modal-info">Available: <span id="available-balance">0</span> <span id="currency"></span></p>
+                    <p class="modal-info">Fee: <span id="withdraw-fee">0</span> <span id="fee-currency"></span></p>
+                    <p class="modal-info small-text">(Withdrawals are simulated for this demo)</p>
+                    <p id="withdraw-error-msg" class="error-message" style="display: none;"></p>
+                    <div class="modal-buttons">
+                        <button id="confirm-withdraw" class="action-button">Confirm</button>
+                        <button id="cancel-withdraw" class="action-button-secondary">Cancel</button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="game" class="section game-section">
+             <div class="banner-placeholder card-style">
+                <img src="assets/graphics/game-banner-aqua.png" alt="Game Banner"> </div>
+            <h2>Game Zone</h2>
+            <p class="section-description">Play games, complete tasks, and earn rewards!</p>
+            <div class="game-list">
+                <div class="game-item card-style"><img src="https://via.placeholder.com/80/00CED1/FFFFFF?text=TG" alt="Traffic Go"><p>Traffic Go</p></div>
+                 <div class="game-item card-style"><img src="https://via.placeholder.com/80/20B2AA/FFFFFF?text=CM" alt="Cutting Master"><p>Cutting Master</p></div>
+                 <div class="game-item card-style"><img src="https://via.placeholder.com/80/48D1CC/000000?text=EM" alt="Element Magic"><p>Element Magic</p></div>
+                 <div class="game-item card-style"><img src="https://via.placeholder.com/80/40E0D0/000000?text=JS" alt="Juicy Splash"><p>Juicy Splash</p></div>
+                 <div class="game-item card-style"><img src="https://via.placeholder.com/80/7FFFD4/000000?text=COR" alt="Creed of Rescue"><p>Creed of Rescue</p></div>
+                 <div class="game-item card-style"><img src="https://via.placeholder.com/80/00FA9A/000000?text=FJ" alt="Farm Jam"><p>Farm Jam</p></div>
+                 <div class="game-item card-style"><img src="https://via.placeholder.com/80/AFEEEE/000000?text=2048" alt="2048 Blocks"><p>2048 Blocks</p></div>
+                 <div class="game-item card-style"><img src="https://via.placeholder.com/80/B0E0E6/000000?text=CRC" alt="Cut Rope Combo"><p>Cut Rope Combo</p></div>
+                 </div>
+        </section>
+
+        <section id="invite" class="section invite-section">
+            <h2>Invite Friends</h2>
+             <div class="invite-header card-style">
+                 <div class="invite-stats">
+                     <span id="my-invite">My Invites: 0</span>
+                     </div>
+                 <p>Invite friends and earn Credits! <br> 10,000 Credits = 1 USDT</p>
+                 <div class="action-buttons">
+                    <button class="action-button invite-friend">Invite Friend</button>
+                    <button class="action-button-secondary copy-link">Copy Link</button>
+                 </div>
+             </div>
+
+             <div class="total-credit card-style">
+                 <div class="credit-info">
+                     <span id="total-credit-text">Total Credit: 0</span>
+                     <small>Convert Credits to USDT</small>
+                 </div>
+                 <button class="claim-button action-button" disabled>Claim USDT</button>
+             </div>
+
+             <div class="record-section card-style">
+                 <h3>Claim Record</h3>
+                 <div class="placeholder-box" id="claim-record-placeholder">
+                     <img src="assets/icons/nofrens-aqua.png" alt="No Claims"> <p>No claim records yet</p>
+                 </div>
+                 <div class="record-list-container" id="claim-record-list"></div> </div>
+
+             <div class="invite-record card-style">
+                 <h3 id="invite-record-title">Invite Record (0)</h3>
+                 <div class="record-header">
+                     <span>User</span>
+                     <span>Join Time</span>
+                     <span>Credit</span>
+                 </div>
+                 <div class="placeholder-box" id="invite-record-placeholder">
+                      <img src="assets/icons/nofrens-aqua.png" alt="No Frens"> <p>No invites yet</p>
+                 </div>
+                 <div class="record-list-container" id="invite-record-list"></div> </div>
+        </section>
+
+        <section id="chest" class="section chest-section">
+            <h2>Treasure Chests</h2>
+             <div class="chest-slider-wrapper card-style">
+                <div class="chest-slider">
+                    <button class="nav-arrow left" aria-label="Previous Chest">&lt;</button>
+                    <div class="chest-container" id="chestContainer">
+                        <div class="chest-item">
+                            <div class="chest-title"><h2>Loading...</h2><span>...</span></div>
+                            <div class="chest-image"><img src="assets/icons/chest_placeholder_aqua.png" alt="Loading Chest"></div>
+                        </div>
+                    </div>
+                    <button class="nav-arrow right" aria-label="Next Chest">&gt;</button>
+                </div>
+                <div class="chest-details">
+                     <h3>Possible Rewards</h3>
+                     <div class="rewards">
+                         <div class="reward-item usdt"><img src="assets/icons/usdt-aqua.png" alt="USDT"><p>USDT</p></div>
+                         <div class="reward-item land-piece"><img src="assets/icons/land-piece-aqua.png" alt="Land Piece"><p>Land Piece</p></div>
+                         <div class="reward-item fox-medal"><img src="assets/icons/fox-medal-aqua.png" alt="Fox Medal"><p>Fox Medal</p></div>
+                     </div>
+                     <div class="cost" id="chestCost">
+                         <img src="assets/icons/gem-aqua.png" alt="Gem">
+                         <span id="chest-cost-amount">...</span>
+                     </div>
+                     <div class="vip-requirement" id="chestVipRequirement" style="display: none;">
+                         NEED VIP X
+                     </div>
+                     <button class="open-chest-button action-button">Open Chest</button>
+                 </div>
+            </div>
+        </section>
+
+        <section id="top" class="section top-section">
+            <h2>Medal Ranking</h2>
+            <p class="section-description">See who has collected the most Fox Medals!</p>
+             <ul class="ranking-list card-style" id="ranking-list">
+                 <li class="loading-placeholder"><p>Loading rankings...</p></li>
+             </ul>
+        </section>
+
+        <section id="profile" class="section profile-section">
+            <h2>My Profile</h2>
+            <div class="profile-details card-style">
+                <div class="profile-header">
+                     <img id="profile-avatar" src="assets/icons/user-avatar-aqua.png" alt="User Avatar">
+                     <h3 id="profile-username">Loading...</h3>
+                </div>
+                <div class="profile-stats">
+                    <p><strong>User ID:</strong> <span id="profile-userid">...</span></p>
+                    <p><strong>Joined:</strong> <span id="profile-joindate">...</span></p>
+                    <p><strong>VIP Level:</strong> <span id="profile-vip">...</span></p>
+                    <p><strong>Total Quests Completed:</strong> <span id="profile-quests">...</span></p> <p><strong>Friends Invited:</strong> <span id="profile-invites">...</span></p> </div>
+                <button class="action-button-secondary" onclick="alert('More profile settings coming soon!')">Edit Profile (Soon)</button>
+            </div>
+        </section>
+
+    </div> <nav class="bottom-nav">
+        <button class="nav-button active" data-section="earn">
+            <img src="assets/icons/earn-aqua.png" alt="Earn"> <span>Earn</span>
+        </button>
+        <button class="nav-button" data-section="wallet">
+            <img src="assets/icons/wallet-aqua.png" alt="Wallet"> <span>Wallet</span>
+        </button>
+        <button class="nav-button" data-section="game">
+            <img src="assets/icons/game-aqua.png" alt="Game"> <span>Game</span>
+        </button>
+        <button class="nav-button" data-section="invite">
+            <img src="assets/icons/invite-aqua.png" alt="Invite"> <span>Invite</span>
+        </button>
+        <button class="nav-button" data-section="chest">
+             <img src="assets/icons/chest-aqua.png" alt="Chest"> <span>Chest</span>
+        </button>
+        <button class="nav-button" data-section="top">
+            <img src="assets/icons/top-aqua.png" alt="Top"> <span>Top</span>
+        </button>
+        </nav>
+
+    <div id="debugConsole"></div>
+    <button id="toggleDebugButton">🐞</button> <script src="js/aqua-script.js"></script>
+</body>
+</html>
