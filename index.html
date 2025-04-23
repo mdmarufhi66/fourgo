@@ -2,257 +2,578 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <title>Aqua Spark App</title>
-    <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    <script src='//whephiwums.com/sdk.js' data-zone='9180370' data-sdk='show_9180370'></script>
-    <link rel="stylesheet" href="css/aqua-style.css">
-    <script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-auth-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-storage-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-analytics-compat.js"></script>
-    <script src="https://unpkg.com/@tonconnect/ui@latest/dist/tonconnect-ui.min.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fanflix - Redesign</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        /* Custom styles can go here if needed, but prefer Tailwind utilities */
+        body {
+            font-family: 'Inter', sans-serif; /* Using Inter font */
+            background-color: #1a202c; /* Dark background similar to the image */
+            color: #e2e8f0; /* Light text color */
+        }
+        .product-card {
+            background-color: #2d3748; /* Slightly lighter dark for cards */
+            border-radius: 0.5rem; /* Rounded corners */
+            overflow: hidden; /* Ensures content stays within rounded corners */
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Subtle shadow */
+            display: flex; /* Use flexbox for internal layout */
+            flex-direction: column; /* Stack content vertically */
+            position: relative; /* Needed for sold-out overlay positioning */
+        }
+        .product-image {
+            width: 100%; /* Make image responsive */
+            height: auto; /* Maintain aspect ratio */
+            /* Optional: Add max-height if images are varying wildly */
+            /* max-height: 200px; */
+            object-fit: cover; /* Ensures image covers the area without distortion */
+        }
+        .rating .fa-star {
+            color: #ecc94b; /* Yellow for stars */
+        }
+        .rating .fa-star-o {
+            color: #a0aec0; /* Gray for empty stars */
+        }
+        .duration-option {
+            padding: 0.5rem 1rem;
+            border: 1px solid #4a5568; /* Border color */
+            border-radius: 0.25rem; /* Small rounded corners */
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+        .duration-option.active {
+            background-color: #4a5568; /* Highlight active option */
+            border-color: #4a5568;
+        }
+        .quantity-selector {
+            display: flex;
+            align-items: center;
+            border: 1px solid #4a5568;
+            border-radius: 0.25rem;
+            overflow: hidden; /* Keeps inner elements within border radius */
+        }
+        .quantity-button {
+            padding: 0.5rem 1rem;
+            background-color: #4a5568;
+            cursor: pointer;
+            user-select: none; /* Prevent text selection on button */
+            transition: background-color 0.3s ease;
+        }
+        .quantity-button:hover {
+             background-color: #636b7a;
+        }
+        .quantity-input {
+            flex-grow: 1; /* Allows input to fill space */
+            text-align: center;
+            padding: 0.5rem 0;
+            background-color: transparent; /* Match parent background */
+            border: none; /* Remove default input border */
+            color: #e2e8f0; /* Match text color */
+            outline: none; /* Remove outline on focus */
+            width: 40px; /* Give it a default width */
+        }
+        .sold-out-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0, 0, 0, 0.7); /* Semi-transparent dark overlay */
+            color: white;
+            font-size: 1.5rem;
+            font-weight: bold;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 10; /* Ensure it's above the card content */
+        }
+         .policy-link {
+            color: #a0aec0; /* Gray color for policy links */
+            text-decoration: none; /* Remove underline */
+            transition: color 0.3s ease;
+        }
+        .policy-link:hover {
+            color: #e2e8f0; /* Lighter color on hover */
+        }
+    </style>
 </head>
-<body>
-    <div id="loadingOverlay" style="display: flex; position: fixed; inset: 0; background-color: rgba(255, 255, 255, 0.9); justify-content: center; align-items: center; z-index: 10000; color: #005f73; font-size: 1.2em; flex-direction: column; gap: 10px;">
-        <img src="assets/icons/loading-spinner.gif" alt="Loading..." width="50"> <span>Loading Aqua Spark...</span>
-    </div>
+<body class="p-4">
 
-    <header>
-        <div class="back-arrow" onclick="Telegram.WebApp.close()">✕</div> <h1>Aqua Spark</h1>
-        <div class="menu-dots" id="headerMenuButton">⋮<span id="notification-indicator" class="notification-dot" style="display: none;"></span></div>
+    <header class="flex justify-between items-center py-4 px-2 mb-8">
+        <div class="flex items-center">
+            <i class="fas fa-bars text-xl mr-4 cursor-pointer"></i>
+            <h1 class="text-2xl font-bold text-red-600">FANFLIX</h1>
+        </div>
+        <div class="flex items-center">
+            <i class="fas fa-search text-xl mr-4 cursor-pointer"></i>
+            <i class="fas fa-shopping-cart text-xl cursor-pointer"></i>
+        </div>
     </header>
 
-    <div id="headerMenuModal" class="modal header-menu-modal" style="display: none;">
-        <div class="modal-content">
-            <h3>Settings</h3>
-            <button id="menuCloseButton">Close Menu</button>
-            <button id="menuWalletButton">Wallet Connect</button> </div>
-    </div>
+    <main class="container mx-auto">
 
-    <div class="main-content">
-        <section class="user-stats">
-            <div class="metric">
-                <img src="assets/icons/gem-aqua.png" alt="Gem"> <span id="gems">0</span>
-            </div>
-            <div class="metric">
-                <img src="assets/icons/usdt-aqua.png" alt="USDT"> <span id="usdt">0.0000</span>
-            </div>
-            <div class="metric">
-                <img src="assets/icons/ton-aqua.png" alt="TON"> <span id="ton">0.0000</span>
-            </div>
-            <div class="profile-pic" id="profileNavButton"> <img src="assets/icons/user-avatar-aqua.png" alt="User Profile"> <span id="profile-notification-indicator" class="notification-dot-small" style="display: none;"></span>
-            </div>
-        </section>
-
-        <section id="earn" class="section earn-section active">
-            <div class="daily-bonus-section card-style" id="dailyBonusSection" style="display: none;">
-                <h2>✨ Daily Bonus ✨</h2>
-                <p>Log in each day for a special reward!</p>
-                <button class="action-button daily-bonus-button" id="claimDailyBonusButton">Claim Bonus</button>
-                <p id="dailyBonusTimer" class="cooldown-timer"></p>
-            </div>
-
-            <div class="banner-placeholder card-style">
-                <img src="assets/graphics/banner-aqua.png" alt="Aqua Spark Banner"> </div>
-
-            <div class="quest-section">
-                <h2>DAILY QUESTS <span class="badge" id="daily-quest-count">0</span></h2>
-                <ul class="quest-list" id="daily-quest-list">
-                    <li class="loading-placeholder"><p>Loading daily quests...</p></li>
-                </ul>
-            </div>
-            <div class="quest-section">
-                <h2>BASIC QUESTS <span class="badge" id="basic-quest-count">0</span></h2>
-                <ul class="quest-list" id="basic-quest-list">
-                     <li class="loading-placeholder"><p>Loading basic quests...</p></li>
-                </ul>
-            </div>
-        </section>
-
-        <section id="wallet" class="section wallet-section">
-            <h2>Wallet</h2>
-            <div class="wallet-status disconnected">
-                <span id="connection-status">Disconnected</span>
-            </div>
-            <div class="balance-card usdt-card card-style">
-                <img src="assets/icons/usdt-aqua.png" alt="USDT Icon">
-                <div class="balance-info">
-                    <span id="wallet-usdt">0.0000</span>
-                    <small>USDT Balance</small>
-                </div>
-                <button class="withdraw-button action-button-secondary" disabled>Withdraw</button>
-            </div>
-            <div class="balance-card ton-card card-style">
-                <img src="assets/icons/ton-aqua.png" alt="TON Icon">
-                <div class="balance-info">
-                    <span id="wallet-ton">0.0000</span>
-                    <small>TON Balance</small>
-                </div>
-                <button class="withdraw-button action-button-secondary" disabled>Withdraw</button>
-            </div>
-            <p class="instruction" id="walletInstruction">Connect your TON wallet to manage and withdraw funds.</p>
-            <button class="connect-button action-button">CONNECT TON WALLET</button>
-            <div class="transaction-history card-style">
-                <h3>Transaction History</h3>
-                <ul id="transaction-list">
-                    <li>No transactions yet</li>
-                </ul>
-            </div>
-
-            <div id="withdraw-modal" class="modal withdraw-modal" style="display: none;">
-                <div class="modal-content card-style">
-                    <h3>Withdraw <span id="modal-currency-title"></span></h3>
-                    <label>Amount: <input type="number" id="withdraw-amount" min="0" step="0.0001" placeholder="0.0000"></label>
-                    <p class="modal-info">Available: <span id="available-balance">0</span> <span id="currency"></span></p>
-                    <p class="modal-info">Fee: <span id="withdraw-fee">0</span> <span id="fee-currency"></span></p>
-                    <p class="modal-info small-text">(Withdrawals are simulated for this demo)</p>
-                    <p id="withdraw-error-msg" class="error-message" style="display: none;"></p>
-                    <div class="modal-buttons">
-                        <button id="confirm-withdraw" class="action-button">Confirm</button>
-                        <button id="cancel-withdraw" class="action-button-secondary">Cancel</button>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <section id="game" class="section game-section">
-             <div class="banner-placeholder card-style">
-                <img src="assets/graphics/game-banner-aqua.png" alt="Game Banner"> </div>
-            <h2>Game Zone</h2>
-            <p class="section-description">Play games, complete tasks, and earn rewards!</p>
-            <div class="game-list">
-                <div class="game-item card-style"><img src="https://via.placeholder.com/80/00CED1/FFFFFF?text=TG" alt="Traffic Go"><p>Traffic Go</p></div>
-                 <div class="game-item card-style"><img src="https://via.placeholder.com/80/20B2AA/FFFFFF?text=CM" alt="Cutting Master"><p>Cutting Master</p></div>
-                 <div class="game-item card-style"><img src="https://via.placeholder.com/80/48D1CC/000000?text=EM" alt="Element Magic"><p>Element Magic</p></div>
-                 <div class="game-item card-style"><img src="https://via.placeholder.com/80/40E0D0/000000?text=JS" alt="Juicy Splash"><p>Juicy Splash</p></div>
-                 <div class="game-item card-style"><img src="https://via.placeholder.com/80/7FFFD4/000000?text=COR" alt="Creed of Rescue"><p>Creed of Rescue</p></div>
-                 <div class="game-item card-style"><img src="https://via.placeholder.com/80/00FA9A/000000?text=FJ" alt="Farm Jam"><p>Farm Jam</p></div>
-                 <div class="game-item card-style"><img src="https://via.placeholder.com/80/AFEEEE/000000?text=2048" alt="2048 Blocks"><p>2048 Blocks</p></div>
-                 <div class="game-item card-style"><img src="https://via.placeholder.com/80/B0E0E6/000000?text=CRC" alt="Cut Rope Combo"><p>Cut Rope Combo</p></div>
-                 </div>
-        </section>
-
-        <section id="invite" class="section invite-section">
-            <h2>Invite Friends</h2>
-             <div class="invite-header card-style">
-                 <div class="invite-stats">
-                     <span id="my-invite">My Invites: 0</span>
-                     </div>
-                 <p>Invite friends and earn Credits! <br> 10,000 Credits = 1 USDT</p>
-                 <div class="action-buttons">
-                    <button class="action-button invite-friend">Invite Friend</button>
-                    <button class="action-button-secondary copy-link">Copy Link</button>
-                 </div>
-             </div>
-
-             <div class="total-credit card-style">
-                 <div class="credit-info">
-                     <span id="total-credit-text">Total Credit: 0</span>
-                     <small>Convert Credits to USDT</small>
-                 </div>
-                 <button class="claim-button action-button" disabled>Claim USDT</button>
-             </div>
-
-             <div class="record-section card-style">
-                 <h3>Claim Record</h3>
-                 <div class="placeholder-box" id="claim-record-placeholder">
-                     <img src="assets/icons/nofrens-aqua.png" alt="No Claims"> <p>No claim records yet</p>
-                 </div>
-                 <div class="record-list-container" id="claim-record-list"></div> </div>
-
-             <div class="invite-record card-style">
-                 <h3 id="invite-record-title">Invite Record (0)</h3>
-                 <div class="record-header">
-                     <span>User</span>
-                     <span>Join Time</span>
-                     <span>Credit</span>
-                 </div>
-                 <div class="placeholder-box" id="invite-record-placeholder">
-                      <img src="assets/icons/nofrens-aqua.png" alt="No Frens"> <p>No invites yet</p>
-                 </div>
-                 <div class="record-list-container" id="invite-record-list"></div> </div>
-        </section>
-
-        <section id="chest" class="section chest-section">
-            <h2>Treasure Chests</h2>
-             <div class="chest-slider-wrapper card-style">
-                <div class="chest-slider">
-                    <button class="nav-arrow left" aria-label="Previous Chest">&lt;</button>
-                    <div class="chest-container" id="chestContainer">
-                        <div class="chest-item">
-                            <div class="chest-title"><h2>Loading...</h2><span>...</span></div>
-                            <div class="chest-image"><img src="assets/icons/chest_placeholder_aqua.png" alt="Loading Chest"></div>
+        <h2 class="text-2xl font-bold mb-6">STREAMING PLATFORMS</h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12"> <div class="product-card">
+                <img src="https://placehold.co/600x300/2d3748/e2e8f0?text=Netflix+Mobile/PC" alt="Netflix Mobile/PC Subscription" class="product-image">
+                <div class="p-4 flex flex-col justify-between flex-grow">
+                    <div>
+                        <h2 class="text-xl font-semibold mb-2">Netflix Subscription</h2>
+                        <p class="text-sm text-gray-400 mb-4">(Mobile / PC / Laptop)</p>
+                        <div class="rating mb-4">
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star-o"></i> <span class="text-sm ml-2 text-gray-400">(47)</span>
                         </div>
                     </div>
-                    <button class="nav-arrow right" aria-label="Next Chest">&gt;</button>
+                    <div>
+                        <p class="text-lg font-bold mb-4">From Tk 249.00 BDT</p>
+                        <button class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded transition duration-300 ease-in-out">
+                            Choose options
+                        </button>
+                    </div>
                 </div>
-                <div class="chest-details">
-                     <h3>Possible Rewards</h3>
-                     <div class="rewards">
-                         <div class="reward-item usdt"><img src="assets/icons/usdt-aqua.png" alt="USDT"><p>USDT</p></div>
-                         <div class="reward-item land-piece"><img src="assets/icons/land-piece-aqua.png" alt="Land Piece"><p>Land Piece</p></div>
-                         <div class="reward-item fox-medal"><img src="assets/icons/fox-medal-aqua.png" alt="Fox Medal"><p>Fox Medal</p></div>
-                     </div>
-                     <div class="cost" id="chestCost">
-                         <img src="assets/icons/gem-aqua.png" alt="Gem">
-                         <span id="chest-cost-amount">...</span>
-                     </div>
-                     <div class="vip-requirement" id="chestVipRequirement" style="display: none;">
-                         NEED VIP X
-                     </div>
-                     <button class="open-chest-button action-button">Open Chest</button>
+            </div>
+
+            <div class="product-card">
+                <img src="https://placehold.co/600x300/2d3748/e2e8f0?text=Netflix+TV/All+Device" alt="Netflix TV/All Device Subscription" class="product-image">
+                 <div class="p-4 flex flex-col justify-between flex-grow">
+                    <div>
+                        <h2 class="text-xl font-semibold mb-2">Netflix Subscription</h2>
+                        <p class="text-sm text-gray-400 mb-4">(TV Plan + All Device)</p>
+                        <div class="rating mb-4">
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star-o"></i>
+                             <i class="fas fa-star-o"></i>
+                              <i class="fas fa-star-o"></i>
+                            <span class="text-sm ml-2 text-gray-400">(12)</span>
+                        </div>
+                    </div>
+                    <div>
+                        <p class="text-lg font-bold mb-4">Tk 449.00 BDT</p>
+                        <button class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded transition duration-300 ease-in-out">
+                            Add to cart
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+             <div class="product-card">
+                <img src="https://placehold.co/600x300/2d3748/e2e8f0?text=Netflix+Prime+Combo" alt="Netflix Prime Combo Subscription" class="product-image">
+                 <div class="p-4 flex flex-col justify-between flex-grow">
+                    <div>
+                        <h2 class="text-xl font-semibold mb-2">Netflix+Prime Video Combo</h2>
+                        <p class="text-sm text-gray-400 mb-4">(Mobile / PC / Laptop)</p>
+                         <div class="rating mb-4">
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <span class="text-sm ml-2 text-gray-400">(Coming Soon)</span> </div>
+                    </div>
+                     <div>
+                        <p class="text-lg font-bold mb-4">Combo Plan</p>
+                        <button class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded transition duration-300 ease-in-out">
+                           Order On WhatsApp
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+             <div class="product-card">
+                <img src="https://placehold.co/600x300/2d3748/e2e8f0?text=Netflix+Prime+Combo+TV" alt="Netflix Prime Combo Subscription TV" class="product-image">
+                 <div class="p-4 flex flex-col justify-between flex-grow">
+                    <div>
+                        <h2 class="text-xl font-semibold mb-2">Netflix & Prime Video Combo</h2>
+                        <p class="text-sm text-gray-400 mb-4">(TV + All Device)</p>
+                         <div class="rating mb-4">
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <span class="text-sm ml-2 text-gray-400">(Coming Soon)</span> </div>
+                    </div>
+                     <div>
+                         <p class="text-lg font-bold mb-4">Combo Plan</p>
+                         <button class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded transition duration-300 ease-in-out">
+                           Order On WhatsApp
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="product-card">
+                 <img src="https://placehold.co/600x300/2d3748/e2e8f0?text=Prime+Video" alt="Amazon Prime Video Subscription" class="product-image">
+                <div class="p-4 flex flex-col justify-between flex-grow">
+                    <div>
+                        <h2 class="text-xl font-semibold mb-2">Amazon Prime Video</h2>
+                         <div class="rating mb-4">
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star-o"></i>
+                             <i class="fas fa-star-o"></i>
+                            <span class="text-sm ml-2 text-gray-400">(6)</span>
+                        </div>
+                    </div>
+                    <div>
+                        <p class="text-lg font-bold mb-4">From Tk 199.00 BDT</p>
+                        <button class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded transition duration-300 ease-in-out">
+                            Choose options
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="product-card">
+                 <img src="https://placehold.co/600x300/2d3748/e2e8f0?text=Crunchyroll" alt="Crunchyroll Subscription" class="product-image">
+                <div class="p-4 flex flex-col justify-between flex-grow">
+                    <div>
+                        <h2 class="text-xl font-semibold mb-2">Crunchyroll Subscription in Bangladesh</h2>
+                         <div class="rating mb-4">
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star-o"></i>
+                            <span class="text-sm ml-2 text-gray-400">(3)</span>
+                        </div>
+                    </div>
+                    <div>
+                        <p class="text-lg font-bold mb-4">From Tk 499.00 BDT</p>
+                        <button class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded transition duration-300 ease-in-out">
+                            Choose options
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+             <div class="product-card">
+                 <img src="https://placehold.co/600x300/2d3748/e2e8f0?text=ZEE5" alt="ZEE5 Subscription" class="product-image">
+                <div class="p-4 flex flex-col justify-between flex-grow">
+                    <div>
+                        <h2 class="text-xl font-semibold mb-2">Zee5 Subscription</h2>
+                         </div>
+                    <div>
+                        <p class="text-lg font-bold mb-4">B - 016 0454 1255</p> <button class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded transition duration-300 ease-in-out">
+                           Order On WhatsApp
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="product-card">
+                 <img src="https://placehold.co/600x300/2d3748/e2e8f0?text=IQIYI" alt="IQIYI VIP" class="product-image">
+                <div class="p-4 flex flex-col justify-between flex-grow">
+                    <div>
+                        <h2 class="text-xl font-semibold mb-2">IQIYI VIP</h2>
+                         </div>
+                    <div>
+                        <p class="text-lg font-bold mb-4">07504541255</p> <button class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded transition duration-300 ease-in-out">
+                           Order On WhatsApp
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="product-card md:col-span-2 lg:col-span-3"> <img src="https://placehold.co/1200x400/4a5568/e2e8f0?text=FANFLIX+VIP+PLAN" alt="Netflix VIP Plan Banner" class="product-image">
+                <div class="p-4 flex flex-col justify-between flex-grow">
+                    <div>
+                        <h2 class="text-2xl font-bold mb-2">NETFLIX VIP PLAN</h2>
+                         <p class="text-lg font-semibold text-gray-300 mb-4">THE VIP EXPERIENCE</p>
+
+                         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 text-sm text-gray-400 mb-6"> <div class="flex items-center"><i class="fas fa-check-circle text-green-500 mr-2"></i> NO HOUSE-HOLD ISSUE</div>
+                             <div class="flex items-center"><i class="fas fa-check-circle text-green-500 mr-2"></i> Renewable</div>
+                             <div class="flex items-center"><i class="fas fa-check-circle text-green-500 mr-2"></i> Single Screen For VIP User</div>
+                             <div class="flex items-center"><i class="fas fa-check-circle text-green-500 mr-2"></i> Supports up to UHD (4K)</div>
+                             <div class="flex items-center"><i class="fas fa-check-circle text-green-500 mr-2"></i> At a time only 1 Screen Streaming</div>
+                             <div class="flex items-center"><i class="fas fa-check-circle text-green-500 mr-2"></i> Password Changeable</div>
+                         </div>
+
+                         <div class="text-center text-gray-400 text-sm mb-6">
+                             <p>+88 016 0454 1255</p>
+                             <p>www.fanflixbd.com</p>
+                         </div>
+
+                    </div>
+                    <div>
+                        <p class="text-xl font-bold mb-4">Tk 550.00 BDT</p>
+
+                        <div class="mb-4">
+                            <h3 class="text-md font-semibold mb-2">Duration</h3>
+                            <div class="flex space-x-4">
+                                <div class="duration-option active">1 Month</div>
+                                <div class="duration-option">3 Month</div>
+                            </div>
+                        </div>
+
+                        <div class="mb-6">
+                             <h3 class="text-md font-semibold mb-2">Quantity</h3>
+                             <div class="quantity-selector w-32"> <div class="quantity-button">-</div>
+                                 <input type="text" value="1" class="quantity-input" readonly>
+                                 <div class="quantity-button">+</div>
+                             </div>
+                        </div>
+
+
+                        <div class="flex flex-col space-y-4">
+                             <button class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-4 rounded transition duration-300 ease-in-out">
+                                Order On WhatsApp
+                             </button>
+                             <button class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded transition duration-300 ease-in-out">
+                                Add to cart
+                             </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <h2 class="text-2xl font-bold mb-6 mt-12">Educational Services</h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
+
+            <div class="product-card">
+                 <img src="https://placehold.co/600x300/2d3748/e2e8f0?text=ChatGPT+Plus" alt="ChatGPT Plus Subscription" class="product-image">
+                <div class="p-4 flex flex-col justify-between flex-grow">
+                    <div>
+                        <h2 class="text-xl font-semibold mb-2">ChatGPT Plus Subscription</h2>
+                         <div class="rating mb-4">
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star-o"></i>
+                            <i class="fas fa-star-o"></i>
+                            <span class="text-sm ml-2 text-gray-400">(4)</span>
+                        </div>
+                    </div>
+                    <div>
+                        <p class="text-lg font-bold mb-4">Tk 399.00 BDT</p>
+                        <button class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded transition duration-300 ease-in-out">
+                            Add to cart
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="product-card">
+                 <img src="https://placehold.co/600x300/2d3748/e2e8f0?text=Google+One" alt="Google One Subscription" class="product-image">
+                <div class="p-4 flex flex-col justify-between flex-grow">
+                    <div>
+                        <h2 class="text-xl font-semibold mb-2">Google One Subscription</h2>
+                         <p class="text-sm text-gray-400 mb-4">STORAGE UPGRADE</p>
+                         <div class="rating mb-4">
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <span class="text-sm ml-2 text-gray-400">(2)</span>
+                        </div>
+                         <p class="text-sm text-gray-400 mb-4">100GB 200GB 2TB More</p>
+                    </div>
+                    <div>
+                        <p class="text-lg font-bold mb-4">From Tk 1,499.00 BDT</p>
+                        <button class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded transition duration-300 ease-in-out">
+                            Choose options
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="product-card">
+                 <img src="https://placehold.co/600x300/2d3748/e2e8f0?text=Surfshark+VPN" alt="Surfshark VPN" class="product-image">
+                <div class="p-4 flex flex-col justify-between flex-grow">
+                    <div>
+                        <h2 class="text-xl font-semibold mb-2">Surfshark VPN</h2>
+                         </div>
+                    <div>
+                        <p class="text-lg font-bold mb-4">-016 0454 1255</p> <button class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded transition duration-300 ease-in-out">
+                           Order On WhatsApp
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+             <div class="product-card">
+                 <img src="https://placehold.co/600x300/2d3748/e2e8f0?text=Windows+Key" alt="Windows 10/11 Activation Key" class="product-image">
+                <div class="p-4 flex flex-col justify-between flex-grow">
+                    <div>
+                        <h2 class="text-xl font-semibold mb-2">WINDOWS 10/11 ACTIVATION KEY</h2>
+                         </div>
+                    <div>
+                        <p class="text-lg font-bold mb-4">Contact for Price</p>
+                        <button class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded transition duration-300 ease-in-out">
+                           Order On WhatsApp
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+
+        </div>
+
+        <h2 class="text-2xl font-bold mb-6 mt-12">Apple Services</h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
+
+            <div class="product-card">
+                 <img src="https://placehold.co/600x300/2d3748/e2e8f0?text=iTunes+Gift+Card" alt="Apple iTunes Gift Card" class="product-image">
+                <div class="p-4 flex flex-col justify-between flex-grow">
+                    <div>
+                        <h2 class="text-xl font-semibold mb-2">Apple iTunes Gift Card</h2>
+                         <div class="rating mb-4">
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star-o"></i>
+                            <span class="text-sm ml-2 text-gray-400">(2)</span>
+                        </div>
+                         <p class="text-sm text-gray-400 mb-4">100 150 25 15</p>
+                    </div>
+                    <div>
+                        <p class="text-lg font-bold mb-4">From Tk 640.00 BDT</p>
+                        <button class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded transition duration-300 ease-in-out">
+                            Choose options
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="product-card">
+                 <img src="https://placehold.co/600x300/2d3748/e2e8f0?text=Apple+One" alt="Apple One Subscription" class="product-image">
+                <div class="p-4 flex flex-col justify-between flex-grow">
+                    <div>
+                        <h2 class="text-xl font-semibold mb-2">Apple One Subscription</h2>
+                         <div class="rating mb-4">
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <span class="text-sm ml-2 text-gray-400">(1)</span>
+                        </div>
+                    </div>
+                    <div>
+                        <p class="text-lg font-bold mb-4">From Tk 499.00 BDT</p>
+                        <button class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded transition duration-300 ease-in-out">
+                            Choose options
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="product-card relative"> <img src="https://placehold.co/600x300/2d3748/e2e8f0?text=iCloud+Premium" alt="Apple iCloud Premium" class="product-image">
+                 <div class="sold-out-overlay">
+                     Sold out
                  </div>
-            </div>
-        </section>
-
-        <section id="top" class="section top-section">
-            <h2>Medal Ranking</h2>
-            <p class="section-description">See who has collected the most Fox Medals!</p>
-             <ul class="ranking-list card-style" id="ranking-list">
-                 <li class="loading-placeholder"><p>Loading rankings...</p></li>
-             </ul>
-        </section>
-
-        <section id="profile" class="section profile-section">
-            <h2>My Profile</h2>
-            <div class="profile-details card-style">
-                <div class="profile-header">
-                     <img id="profile-avatar" src="assets/icons/user-avatar-aqua.png" alt="User Avatar">
-                     <h3 id="profile-username">Loading...</h3>
+                <div class="p-4 flex flex-col justify-between flex-grow">
+                    <div>
+                        <h2 class="text-xl font-semibold mb-2">Apple iCloud Premium</h2>
+                         <p class="text-sm text-gray-400 mb-4">iCloud 50GB [3</p> </div>
+                    <div>
+                         <p class="text-lg font-bold mb-4">Contact for Price</p>
+                        <button class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded transition duration-300 ease-in-out opacity-50 cursor-not-allowed" disabled>
+                           Order On WhatsApp
+                        </button>
+                    </div>
                 </div>
-                <div class="profile-stats">
-                    <p><strong>User ID:</strong> <span id="profile-userid">...</span></p>
-                    <p><strong>Joined:</strong> <span id="profile-joindate">...</span></p>
-                    <p><strong>VIP Level:</strong> <span id="profile-vip">...</span></p>
-                    <p><strong>Total Quests Completed:</strong> <span id="profile-quests">...</span></p> <p><strong>Friends Invited:</strong> <span id="profile-invites">...</span></p> </div>
-                <button class="action-button-secondary" onclick="alert('More profile settings coming soon!')">Edit Profile (Soon)</button>
             </div>
-        </section>
 
-    </div> <nav class="bottom-nav">
-        <button class="nav-button active" data-section="earn">
-            <img src="assets/icons/earn-aqua.png" alt="Earn"> <span>Earn</span>
-        </button>
-        <button class="nav-button" data-section="wallet">
-            <img src="assets/icons/wallet-aqua.png" alt="Wallet"> <span>Wallet</span>
-        </button>
-        <button class="nav-button" data-section="game">
-            <img src="assets/icons/game-aqua.png" alt="Game"> <span>Game</span>
-        </button>
-        <button class="nav-button" data-section="invite">
-            <img src="assets/icons/invite-aqua.png" alt="Invite"> <span>Invite</span>
-        </button>
-        <button class="nav-button" data-section="chest">
-             <img src="assets/icons/chest-aqua.png" alt="Chest"> <span>Chest</span>
-        </button>
-        <button class="nav-button" data-section="top">
-            <img src="assets/icons/top-aqua.png" alt="Top"> <span>Top</span>
-        </button>
-        </nav>
 
-    <div id="debugConsole"></div>
-    <button id="toggleDebugButton">🐞</button> <script src="js/aqua-script.js"></script>
+        </div>
+
+        <div class="mt-12 border-t border-gray-700 pt-8">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div>
+                    <h2 class="text-2xl font-bold mb-4">FANFLIX BD</h2>
+                    <p class="text-gray-400 mb-6">
+                        FanFlix BD is an independent platform in Bangladesh, offering
+                        easy access to popular digital subscriptions using local payment
+                        methods.
+                    </p>
+                    <div class="flex space-x-6 text-gray-400 text-2xl">
+                        <a href="#" class="hover:text-white transition duration-300 ease-in-out"><i class="fab fa-facebook"></i></a>
+                        <a href="#" class="hover:text-white transition duration-300 ease-in-out"><i class="fab fa-instagram"></i></a>
+                        <a href="#" class="hover:text-white transition duration-300 ease-in-out"><i class="fab fa-youtube"></i></a>
+                        <a href="#" class="hover:text-white transition duration-300 ease-in-out"><i class="fab fa-twitter"></i></a> </div>
+                </div>
+
+                <div>
+                    <h3 class="text-xl font-semibold mb-4">OUR POLICY</h3>
+                    <ul class="space-y-2">
+                        <li><a href="#" class="policy-link">Refund & Exchange Policy</a></li>
+                        <li><a href="#" class="policy-link">Terms & Conditions</a></li>
+                        <li><a href="#" class="policy-link">Privacy Policy</a></li>
+                        <li><a href="#" class="policy-link">Order & Cancellation Policy</a></li>
+                        <li><a href="#" class="policy-link">EULA</a></li>
+                        <li><a href="#" class="policy-link">Trademark</a></li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="flex flex-col items-center mt-8 space-y-4">
+                 <button class="w-full md:w-auto bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-6 rounded transition duration-300 ease-in-out">
+                    Order On WhatsApp
+                 </button>
+                 <p class="text-gray-400 text-sm">Subscribe to our emails</p>
+                 </div>
+        </div>
+
+
+    </main>
+
+    <footer class="text-center text-gray-500 text-sm mt-8 py-4 border-t border-gray-700">
+        &copy; 2023 Fanflix Redesign. All rights reserved.
+    </footer>
+
+    <script>
+        // Basic JavaScript for potential future interactions (e.g., theme switching, quantity)
+        console.log("Website structure loaded.");
+
+        // Example: Add basic functionality for quantity selector (for the VIP card)
+        document.addEventListener('DOMContentLoaded', () => {
+            const quantitySelector = document.querySelector('.quantity-selector');
+            if (quantitySelector) {
+                const minusButton = quantitySelector.querySelector('.quantity-button:first-child');
+                const plusButton = quantitySelector.querySelector('.quantity-button:last-child');
+                const quantityInput = quantitySelector.querySelector('.quantity-input');
+
+                minusButton.addEventListener('click', () => {
+                    let currentValue = parseInt(quantityInput.value);
+                    if (currentValue > 1) {
+                        quantityInput.value = currentValue - 1;
+                    }
+                });
+
+                plusButton.addEventListener('click', () => {
+                    let currentValue = parseInt(quantityInput.value);
+                    quantityInput.value = currentValue + 1;
+                });
+            }
+
+            // Example: Add basic functionality for duration selection (for the VIP card)
+            const durationOptions = document.querySelectorAll('.duration-option');
+            durationOptions.forEach(option => {
+                option.addEventListener('click', () => {
+                    // Remove 'active' class from all options
+                    durationOptions.forEach(opt => opt.classList.remove('active'));
+                    // Add 'active' class to the clicked option
+                    option.classList.add('active');
+                    // You would typically update the price or other details here based on the selected duration
+                    console.log('Selected duration:', option.textContent);
+                });
+            });
+        });
+
+    </script>
+
 </body>
 </html>
+
