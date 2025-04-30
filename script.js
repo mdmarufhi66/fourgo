@@ -23,6 +23,13 @@ let currentSlideIndex = 0;
 let slideInterval;
 const BANNER_INTERVAL_MS = 5000;
 let currentUser = null; // To store the current logged-in user info
+let currentProductForOptions = null; // To hold the product data for the currently open options modal
+let selectedOptions = { // To store selected options in the modal
+    duration: null,
+    quantity: 1, // Default quantity
+    price: null // Price based on selected options
+};
+
 
 // --- DOM Elements ---
 const sideMenu = document.getElementById('side-menu');
@@ -55,6 +62,19 @@ const featuredProductSection = document.getElementById('featured-product-section
 const featuredProductImage = document.getElementById('featured-product-image');
 const featuredProductTitle = document.getElementById('featured-product-title');
 const featuredProductDescription = document.getElementById('featured-product-description');
+
+// New DOM Elements for Product Options Modal
+const productOptionsModalOverlay = document.getElementById('product-options-modal-overlay');
+const productOptionsModal = document.getElementById('product-options-modal');
+const optionsModalCloseIcon = document.getElementById('options-modal-close-icon');
+const optionsModalProductName = document.getElementById('options-modal-product-name');
+const optionsModalPrice = document.getElementById('options-modal-price');
+const optionsModalRating = document.getElementById('options-modal-rating'); // Added rating element
+const optionsContainer = document.getElementById('options-container');
+const optionsModalAddToCartButton = document.getElementById('options-modal-add-to-cart');
+const optionsModalBuyNowButton = document.getElementById('options-modal-buy-now');
+const optionsModalWhatsappButton = document.getElementById('options-modal-whatsapp');
+const optionsModalSeeMoreLink = document.getElementById('options-modal-see-more');
 
 
 // --- Initialization ---
@@ -100,6 +120,16 @@ function setupEventListeners() {
         }
     });
 
+    // Product Options Modal Close
+    optionsModalCloseIcon?.addEventListener('click', hideOptionsModal);
+     productOptionsModalOverlay?.addEventListener('click', (event) => {
+         // Close modal if clicking on the overlay itself, not the modal content
+         if (event.target === productOptionsModalOverlay) {
+             hideOptionsModal();
+         }
+     });
+
+
     // Login/Signup Form Submission
     loginForm?.addEventListener('submit', handleLoginAttempt); // Handle login on form submit
     document.getElementById('signup-button')?.addEventListener('click', handleSignupAttempt); // Handle signup on button click
@@ -122,14 +152,18 @@ function setupEventListeners() {
         }
     });
 
-    // Product Card Interactions (delegated)
+    // Product Card Interactions (delegated) - Clicks on buttons within product cards
     const productContainers = [
         allProductsContainer, streamingPlatformsContainer, educationalServicesContainer,
-        appleServicesContainer, bestSellingProductsContainer, featuredProductSection // Add featured section
+        appleServicesContainer, bestSellingProductsContainer, featuredProductSection
     ];
     productContainers.forEach(container => {
         container?.addEventListener('click', handleProductCardInteraction);
     });
+
+     // Product Options Modal Interactions (delegated within the modal)
+     productOptionsModal?.addEventListener('click', handleOptionsModalInteraction);
+
 
     // Cart Item Removal (delegated)
      cartItemsContainer?.addEventListener('click', (event) => {
@@ -321,48 +355,72 @@ async function fetchAndRenderData() {
         }
         */
 
-        // --- Placeholder Data (Remove this once Firebase fetching is implemented) ---
+        // --- Placeholder Data (Replace this once Firebase fetching is implemented) ---
          allProducts = []; // Ensure it's empty initially
          featuredProduct = null; // Ensure featuredProduct is null initially
          if (featuredProductSection) featuredProductSection.style.display = 'none'; // Hide featured section by default
 
          // Dummy Data Structure (Replace with actual Firebase data)
          allProducts = [
-             {
-                id: 'netflix-standard-1month',
-                name: 'Netflix Standard',
-                description: 'Shared Account',
-                imageUrl: 'https://via.placeholder.com/300x180/E50914/FFFFFF?text=Netflix',
-                price: 500, // Base price
-                rating: 4.5,
-                ratingCount: 120,
+              {
+                id: 'netflix-premium-mobile-pc-laptop',
+                name: 'Netflix Premium',
+                description: '(Mobile/PC/Laptop)', // Matching the image text
+                imageUrl: 'https://via.placeholder.com/300x180/E50914/FFFFFF?text=Netflix+Premium',
+                price: 249.00, // Matching the image price (base price)
+                rating: 4.5, // Example rating
+                ratingCount: 120, // Example count
                 category: 'streaming-services',
                 isBestSeller: true,
                 isSoldOut: false,
-                durationOptions: [ // These options now only control the "Choose Options" button logic
-                    { duration: '1 Month', price: 500 },
-                    { duration: '3 Months', price: 1400 } // Example: slightly discounted
+                // Represent options as groups with choices
+                optionGroups: [
+                    {
+                        name: 'Choose Screen Type',
+                        type: 'select', // Can be 'select' or 'radio' etc.
+                        choices: [
+                            { label: 'Shared Screen', value: 'Shared Screen', priceModifier: 0 }, // priceModifier can be absolute price or difference
+                            { label: 'Private Screen', value: 'Private Screen', priceModifier: 100 } // Example price difference
+                        ]
+                    },
+                    {
+                        name: 'Duration',
+                        type: 'select',
+                        choices: [
+                            { label: '1 Month', value: '1 Month', priceModifier: 0 },
+                            // Add other durations here with their price modifiers
+                        ]
+                    }
                 ],
-                showQuantity: false,
-                addToCartLink: true, // Indicates this product can be added to cart
-                details: 'Works on TV, Mobile, Laptop'
+                durationOptions: null, // Using optionGroups instead of durationOptions
+                showQuantity: true, // Enable quantity selection in modal
+                addToCartLink: true, // Can be added to cart after choosing options
+                whatsappLink: 'https://wa.me/YOUR_WHATSAPP_NUMBER/?text=Hi%2C%20I%27m%20interested%20in%20the%20Netflix%20Premium%20(Mobile%2FPC%2FLaptop).', // Example WhatsApp link - REPLACE WITH REAL LINK
+                details: 'Official personal account, 4K Ultra HD' // Example details
              },
               {
-                id: 'youtube-premium-individual-1month',
+                id: 'youtube-premium-individual',
                 name: 'YouTube Premium Individual',
                 description: 'Monthly Plan',
                 imageUrl: 'https://via.placeholder.com/300x180/FF0000/FFFFFF?text=YouTube+Premium',
-                price: 250,
+                price: 250, // Base price
                 rating: 4.8,
                 ratingCount: 85,
                 category: 'streaming-services',
                 isBestSeller: true,
                 isSoldOut: false,
-                durationOptions: [
-                     { duration: '1 Month', price: 250 },
-                     { duration: '6 Months', price: 1400 }
+                optionGroups: [
+                     {
+                        name: 'Duration',
+                        type: 'select',
+                        choices: [
+                            { label: '1 Month', value: '1 Month', priceModifier: 0 },
+                            { label: '6 Months', value: '6 Months', priceModifier: 1200 }
+                        ]
+                    }
                  ],
-                 showQuantity: false,
+                 durationOptions: null, // Using optionGroups
+                 showQuantity: false, // Quantity not needed
                 addToCartLink: true,
                  details: 'Ad-free videos, Offline playback'
              },
@@ -370,18 +428,25 @@ async function fetchAndRenderData() {
                 id: 'spotify-premium-individual',
                 name: 'Spotify Premium Individual',
                 description: 'Subscription',
-                imageUrl: 'https://via.placeholder.com/300x180/1DB954/FFFFFF?text=Spotify',
+                imageUrl: 'https://via.placeholder.co/300x180/1DB954/FFFFFF?text=Spotify',
                 price: 150, // Base price
                 rating: 4.7,
                 ratingCount: 90,
                 category: 'streaming-services',
                 isBestSeller: false,
                 isSoldOut: false,
-                durationOptions: [
-                     { duration: '1 Month', price: 150 },
-                     { duration: '3 Months', price: 400 },
-                     { duration: '6 Months', price: 750 }
+                 optionGroups: [
+                     {
+                        name: 'Duration',
+                        type: 'select',
+                        choices: [
+                            { label: '1 Month', value: '1 Month', priceModifier: 0 },
+                            { label: '3 Months', value: '3 Months', priceModifier: 250 },
+                            { label: '6 Months', value: '6 Months', priceModifier: 600 }
+                        ]
+                     }
                  ],
+                 durationOptions: null,
                   showQuantity: false,
                  addToCartLink: true,
                  details: 'Listen offline, Ad-free music'
@@ -397,9 +462,16 @@ async function fetchAndRenderData() {
                 category: 'educational-tools',
                 isBestSeller: true,
                 isSoldOut: false,
-                durationOptions: [
-                    { duration: '1 Month', price: 1800 }
+                optionGroups: [
+                    {
+                        name: 'Duration',
+                        type: 'select',
+                        choices: [
+                            { label: '1 Month', value: '1 Month', priceModifier: 0 }
+                        ]
+                    }
                  ],
+                 durationOptions: null,
                  showQuantity: false,
                 addToCartLink: true,
                  details: 'Priority access, Faster responses'
@@ -415,9 +487,16 @@ async function fetchAndRenderData() {
                 category: 'educational-tools',
                 isBestSeller: false,
                 isSoldOut: false,
-                durationOptions: [
-                    { duration: '1 Year', price: 3500 }
+                optionGroups: [
+                    {
+                        name: 'Duration',
+                        type: 'select',
+                        choices: [
+                            { label: '1 Year', value: '1 Year', priceModifier: 0 }
+                        ]
+                    }
                  ],
+                 durationOptions: null,
                   showQuantity: false,
                 addToCartLink: true,
                  details: 'Advanced grammar checks, Plagiarism detector'
@@ -433,11 +512,18 @@ async function fetchAndRenderData() {
                 category: 'apple-services',
                 isBestSeller: false,
                 isSoldOut: false,
-                durationOptions: [
-                    { duration: '1 Month', price: 200 },
-                    { duration: '3 Months', price: 550 },
-                    { duration: '1 Year', price: 2000 }
+                 optionGroups: [
+                     {
+                        name: 'Duration',
+                        type: 'select',
+                        choices: [
+                            { label: '1 Month', value: '1 Month', priceModifier: 0 },
+                            { label: '3 Months', value: '3 Months', priceModifier: 350 },
+                            { label: '1 Year', value: '1 Year', priceModifier: 1800 }
+                        ]
+                    }
                  ],
+                 durationOptions: null,
                  showQuantity: false,
                 addToCartLink: true,
                  details: 'Millions of songs, Ad-free listening'
@@ -453,9 +539,16 @@ async function fetchAndRenderData() {
                 category: 'apple-services',
                 isBestSeller: false,
                 isSoldOut: false,
-                durationOptions: [
-                    { duration: '1 Month', price: 180 }
+                optionGroups: [
+                    {
+                        name: 'Duration',
+                        type: 'select',
+                        choices: [
+                            { label: '1 Month', value: '1 Month', priceModifier: 0 }
+                        ]
+                    }
                  ],
+                 durationOptions: null,
                  showQuantity: false,
                 addToCartLink: true,
                  details: 'Original shows and movies'
@@ -471,10 +564,11 @@ async function fetchAndRenderData() {
                 category: 'educational-tools',
                 isBestSeller: false,
                 isSoldOut: false,
-                durationOptions: [], // No duration options
-                showQuantity: true, // Enable quantity selector
-                addToCartLink: true,
-                 details: 'Perpetual license for one user'
+                optionGroups: [], // No specific option groups
+                durationOptions: null,
+                showQuantity: true, // Enable quantity selection in modal
+                addToCartLink: true, // Can be added to cart after choosing quantity
+                details: 'Perpetual license for one user'
              },
              {
                  id: 'sold-out-product',
@@ -487,9 +581,11 @@ async function fetchAndRenderData() {
                  category: 'misc',
                  isBestSeller: false,
                  isSoldOut: true, // Mark as sold out
-                 durationOptions: [],
+                 optionGroups: [],
+                 durationOptions: null,
                  showQuantity: false,
                  addToCartLink: false, // Cannot add to cart if sold out
+                 whatsappLink: null, // Or leave undefined/empty
                  details: 'Check back later for availability'
              },
               {
@@ -503,19 +599,44 @@ async function fetchAndRenderData() {
                 category: 'educational-tools',
                 isBestSeller: false,
                 isSoldOut: false,
-                durationOptions: [], // No duration options
+                optionGroups: [], // No option groups
+                durationOptions: null,
                 showQuantity: false, // No quantity selector
                 addToCartLink: true, // Can be added directly to cart
+                whatsappLink: null, // Or leave undefined/empty
                  details: 'Instant download'
+             },
+             {
+                 id: 'whatsapp-only-product',
+                 name: 'Custom Service',
+                 description: 'Contact us for a quote',
+                 imageUrl: 'https://via.placeholder.co/300x180/667EEA/FFFFFF?text=Custom',
+                 price: 'Contact for Price', // Or null
+                 rating: null,
+                 ratingCount: '',
+                 category: 'misc',
+                 isBestSeller: false,
+                 isSoldOut: false,
+                 optionGroups: [],
+                 durationOptions: null,
+                 showQuantity: false,
+                 addToCartLink: false, // Cannot add to cart
+                 whatsappLink: 'https://wa.me/YOUR_WHATSAPP_NUMBER/?text=Hi%2C%20I%27m%20interested%20in%20your%20custom%20service.', // WhatsApp only
+                 details: 'Tailored solutions'
              }
          ];
 
-         // Select a dummy featured product (e.g., the first best seller with options)
-         featuredProduct = allProducts.find(p => p.isBestSeller && !p.isSoldOut && (p.durationOptions.length > 0 || p.showQuantity));
-         if (!featuredProduct) {
-              // Fallback to any best seller if no actionable best seller
-              featuredProduct = allProducts.find(p => p.isBestSeller && !p.isSoldOut);
-         }
+         // Select a dummy featured product (e.g., the Netflix one from the image)
+         featuredProduct = allProducts.find(p => p.id === 'netflix-premium-mobile-pc-laptop'); // Find the specific Netflix product
+          if (!featuredProduct) {
+               // Fallback logic if the specific Netflix product isn't found (e.g., find any best seller with options)
+               featuredProduct = allProducts.find(p => p.isBestSeller && !p.isSoldOut && (p.optionGroups?.length > 0 || p.showQuantity));
+               if (!featuredProduct) {
+                    featuredProduct = allProducts.find(p => p.isBestSeller && !p.isSoldOut); // Fallback to any best seller
+               }
+          }
+
+
          if (featuredProduct) {
              // Add specific featured details if needed, or just use existing product data
              renderFeaturedProduct(featuredProduct);
@@ -531,7 +652,7 @@ async function fetchAndRenderData() {
         // --- Hardcoded Banner Images (Kept as they were not requested to be removed) ---
         const bannerImages = [
             "https://placehold.co/1200x400/1a1a1a/e50914?text=Welcome+to+FANFLIX+BD",
-            "https://placehold.co/1200x400/1a1a1a/00A8E1?text=Get+Your+Prime+Video+Subscription",
+            "https://placehold.co/1200x400/1a1a1a/00A8E1/FFFFFF?text=Get+Your+Prime+Video+Subscription", // Updated text
             "https://placehold.co/1200x400/1a1a1a/ffffff?text=Exclusive+Offers+Inside!",
         ];
         // --- End Hardcoded Banner Images ---
@@ -608,41 +729,50 @@ function createProductCardHTML(product) {
     const ratingCount = product.ratingCount !== undefined ? product.ratingCount : '';
     const price = product.price !== undefined ? product.price : 'Contact for Price'; // Default price
     const isSoldOut = product.isSoldOut || false;
-    const durationOptions = product.durationOptions || [];
+    const optionGroups = product.optionGroups || []; // Using optionGroups now
     const showQuantity = product.showQuantity || false;
-    // Removed whatsappLink property check
-    const addToCartLink = product.addToCartLink || ''; // Using this as a flag for 'Add to Cart' button presence
+    const whatsappLink = product.whatsappLink || null; // Get the WhatsApp link
     const details = product.details || '';
 
 
     const priceFormatted = typeof price === 'number' ? formatPrice(price) : price;
     const isActionable = !isSoldOut;
 
-    // --- Removed inline duration options and quantity selector HTML ---
-    const durationOptionsHTML = ''; // No longer rendered inline
-    const quantitySelectorHTML = ''; // No longer rendered inline
-    // --- End Removed HTML ---
+    const requiresOptions = optionGroups.length > 0 || showQuantity;
 
+    // Determine the primary action button based on product data and actionability
+    let primaryActionButtonHTML = '';
+    let secondaryActionButtonHTML = ''; // For the WhatsApp button if displayed alongside
 
-    // Only show 'Add to Cart' if addToCartLink is present AND there are no duration options or quantity selectors requiring 'Choose Options'
-    // Also ensure the product is actionable (not sold out)
-    const requiresOptions = durationOptions.length > 0 || showQuantity;
-    const showAddToCartButton = addToCartLink && isActionable && !requiresOptions;
-    const addToCartButtonHTML = showAddToCartButton ? `<button class="action-button btn-blue add-to-cart-button" data-product-id="${id}"><i class="fas fa-cart-plus mr-2"></i> Add to cart</button>` : '';
-
-     // Show 'Choose Options' if the product is actionable AND requires options (duration or quantity)
-    const showChooseOptionsButton = isActionable && requiresOptions;
-    const chooseOptionsButtonHTML = showChooseOptionsButton ? `<button class="action-button btn-blue choose-options-button" data-product-id="${id}">Choose options</button>` : '';
-
-    // Determine which button(s) to show
-    let actionButtonsHTML = '';
-    if (showAddToCartButton) {
-        actionButtonsHTML += addToCartButtonHTML;
+    // If requires options, the primary button is "Choose options"
+    if (isActionable && requiresOptions) {
+        primaryActionButtonHTML = `<button class="action-button btn-blue choose-options-button" data-product-id="${id}">Choose options</button>`;
+         // If WhatsApp link exists AND it's also actionable, show WhatsApp button as secondary
+        if (isActionable && whatsappLink) {
+             secondaryActionButtonHTML = `<button class="action-button btn-green whatsapp-button" data-product-id="${id}" data-whatsapp-link="${whatsappLink}"><i class="fab fa-whatsapp mr-2"></i> Order On WhatsApp</button>`;
+        }
     }
-    if (showChooseOptionsButton) {
-         actionButtonsHTML += chooseOptionsButtonHTML;
+    // If doesn't require options AND can be added to cart, the primary button is "Add to cart"
+    else if (isActionable && product.addToCartLink && !requiresOptions) { // Check product.addToCartLink and ensure no options are required
+        primaryActionButtonHTML = `<button class="action-button btn-blue add-to-cart-button" data-product-id="${id}"><i class="fas fa-cart-plus mr-2"></i> Add to cart</button>`;
+         // If WhatsApp link exists AND it's also actionable, show WhatsApp button as secondary
+        if (isActionable && whatsappLink) {
+             secondaryActionButtonHTML = `<button class="action-button btn-green whatsapp-button" data-product-id="${id}" data-whatsapp-link="${whatsappLink}"><i class="fab fa-whatsapp mr-2"></i> Order On WhatsApp</button>`;
+        }
     }
-    // If product is sold out and no other buttons are shown, leave actionButtonsHTML empty or add a placeholder if needed
+    // If only WhatsApp is available and actionable
+    else if (isActionable && whatsappLink && !requiresOptions && !product.addToCartLink) { // Ensure it's WhatsApp only
+         primaryActionButtonHTML = `<button class="action-button btn-green whatsapp-button" data-product-id="${id}" data-whatsapp-link="${whatsappLink}"><i class="fab fa-whatsapp mr-2"></i> Order On WhatsApp</button>`;
+         // No secondary button in this case
+    }
+     // If none of the above and not sold out, maybe show a placeholder or nothing (actionButtonsHTML remains empty)
+
+     // If sold out, ensure no buttons are shown (covered by isActionable checks)
+     // The sold out overlay is already handled
+
+
+    // Combine buttons - place primary first, then secondary
+    const actionButtonsHTML = primaryActionButtonHTML + secondaryActionButtonHTML;
 
 
     // Ensure data-product-id is on the main product-card div
@@ -660,100 +790,248 @@ function hideSearchBar() { searchBarContainer?.classList.remove('active'); if (s
 function showCart() { cartContainer?.classList.add('active'); document.body.style.overflowY = 'hidden'; renderCartItems(); }
 function hideCart() { cartContainer?.classList.remove('active'); document.body.style.overflowY = 'auto'; }
 function showLoginModal() { if (loginModalOverlay) loginModalOverlay.classList.add('visible'); clearLoginError(); document.body.style.overflowY = 'hidden'; } // Prevent body scroll
-function hideLoginModal() { if (loginModalOverlay) loginModalOverlay.classList.remove('visible'); if (!sideMenu?.classList.contains('open') && !cartContainer?.classList.contains('active')) { document.body.style.overflowY = 'auto'; } } // Restore scroll only if other overlays are closed
+function hideLoginModal() { if (loginModalOverlay) loginModalOverlay.classList.remove('visible'); if (!sideMenu?.classList.contains('open') && !cartContainer?.classList.contains('active') && !productOptionsModalOverlay?.classList.contains('visible')) { document.body.style.overflowY = 'auto'; } } // Restore scroll only if other overlays are closed
 
-function handleViewChange(event) {
-    event.preventDefault();
-    const view = event.currentTarget.dataset.view; // Use currentTarget
-    if (view) {
-        showView(view);
-        // Close menu if the click came from within the menu
-        if (event.currentTarget.closest('#side-menu')) {
-            closeMenu();
-        }
-    }
+// New functions for Product Options Modal
+function showOptionsModal(product) {
+     if (!productOptionsModalOverlay || !productOptionsModal || !product) return;
+
+     currentProductForOptions = product;
+     // Reset selected options to default quantity and base price
+     selectedOptions = {
+         duration: null,
+         quantity: 1,
+         price: product.price // Start with base price
+     };
+
+     // Populate modal content
+     optionsModalProductName.textContent = product.name || 'Product Options';
+     // Initially display the base price or 'Contact for Price'
+     optionsModalPrice.textContent = typeof product.price === 'number' ? formatPrice(product.price) : product.price;
+     optionsModalRating.innerHTML = generateStarRatingHTML(product.rating); // Populate rating
+
+     renderProductOptions(product); // Render the dynamic options
+
+     // Set WhatsApp button link if available
+     if (product.whatsappLink && optionsModalWhatsappButton) {
+         optionsModalWhatsappButton.style.display = 'flex'; // Show button
+         optionsModalWhatsappButton.setAttribute('data-whatsapp-link', product.whatsappLink);
+     } else {
+         if (optionsModalWhatsappButton) optionsModalWhatsappButton.style.display = 'none'; // Hide button
+     }
+
+     // Set See More link (assuming it links to a product details page)
+     // You'll need a way to generate product detail page URLs
+     if (optionsModalSeeMoreLink) {
+          optionsModalSeeMoreLink.href = `#product-details/${product.id}`; // Placeholder link
+     }
+
+
+     productOptionsModalOverlay.classList.add('visible');
+     document.body.style.overflowY = 'hidden'; // Prevent body scroll
 }
 
-function showView(viewName) {
-    document.querySelectorAll('.view-section').forEach(view => view.classList.remove('active'));
-    categorizedProductsView?.querySelectorAll('.category-section').forEach(section => section.classList.remove('active'));
-    bestSellersSection?.classList.remove('active');
-    // Keep featured section visible on home view if data is loaded and not searching
-    if (viewName === 'home' && featuredProduct && !document.getElementById('search-bar-container')?.classList.contains('active')) {
-         featuredProductSection?.classList.add('active');
-    } else {
-         featuredProductSection?.classList.remove('active');
+function hideOptionsModal() {
+     if (!productOptionsModalOverlay) return;
+     productOptionsModalOverlay.classList.remove('visible');
+     currentProductForOptions = null; // Clear current product context
+     // Restore body scroll only if other overlays are closed
+     if (!sideMenu?.classList.contains('open') && !cartContainer?.classList.contains('active') && !loginModalOverlay?.classList.contains('visible')) {
+          document.body.style.overflowY = 'auto';
+     }
+}
+
+function renderProductOptions(product) {
+    if (!optionsContainer || !product) return;
+    optionsContainer.innerHTML = ''; // Clear existing options
+
+    const fragment = document.createDocumentFragment();
+
+    // Render Option Groups (like Screen Type, Duration)
+    if (product.optionGroups && product.optionGroups.length > 0) {
+        product.optionGroups.forEach(group => {
+            const groupDiv = document.createElement('div');
+            groupDiv.classList.add('mb-4', 'option-group');
+            groupDiv.setAttribute('data-option-group-name', group.name); // Add data attribute for group name
+
+            const title = document.createElement('h3');
+            title.classList.add('text-sm', 'font-semibold', 'mb-2', 'text-gray-400', 'uppercase', 'tracking-wider');
+            title.textContent = group.name;
+            groupDiv.appendChild(title);
+
+            const choicesContainer = document.createElement('div');
+            choicesContainer.classList.add('flex', 'flex-wrap', 'gap-2');
+
+            group.choices.forEach((choice, index) => {
+                const choiceButton = document.createElement('button');
+                choiceButton.classList.add('duration-option', 'text-sm', 'px-3', 'py-1', 'border', 'border-gray-600', 'rounded', 'hover:bg-gray-600', 'transition-colors');
+                choiceButton.textContent = choice.label;
+                 // Add data attributes for easier handling
+                choiceButton.setAttribute('data-option-value', choice.value);
+                choiceButton.setAttribute('data-option-group-name', group.name);
+                choiceButton.setAttribute('data-price-modifier', choice.priceModifier !== undefined ? choice.priceModifier : 0);
+
+
+                // Automatically select the first option in each group
+                if (index === 0) {
+                    choiceButton.classList.add('active', 'bg-gray-600');
+                     // Set the default selected option in global state
+                     if (!selectedOptions[group.name]) { // Only set if not already selected
+                          selectedOptions[group.name] = choice.value;
+                     }
+                }
+                choicesContainer.appendChild(choiceButton);
+            });
+
+            groupDiv.appendChild(choicesContainer);
+            fragment.appendChild(groupDiv);
+        });
     }
 
+    // Render Quantity Selector
+    if (product.showQuantity) {
+         const quantityDiv = document.createElement('div');
+         quantityDiv.classList.add('mb-4', 'quantity-selector-container'); // Using container class
 
-    let currentViewTitle = 'Home';
-    // Products are now rendered when data is fetched, so we don't re-render all here
-    // just activate the correct container if needed (though showView primarily controls sections)
+         const title = document.createElement('h3');
+         title.classList.add('text-sm', 'font-semibold', 'mb-2', 'text-gray-400', 'uppercase', 'tracking-wider');
+         title.textContent = 'Quantity';
+         quantityDiv.appendChild(title);
+
+         const selector = document.createElement('div');
+         selector.classList.add('quantity-selector', 'inline-flex');
+
+         const minusButton = document.createElement('button');
+         minusButton.classList.add('quantity-button', 'minus', 'bg-gray-600', 'hover:bg-gray-500', 'rounded-l', 'px-3', 'py-1');
+         minusButton.textContent = '-';
+         selector.appendChild(minusButton);
+
+         const quantityInput = document.createElement('input');
+         quantityInput.type = 'number';
+         quantityInput.value = selectedOptions.quantity; // Use current selected quantity
+         quantityInput.min = '1';
+         quantityInput.classList.add('quantity-input', 'w-12', 'text-center', 'bg-gray-700', 'border-t', 'border-b', 'border-gray-600');
+         quantityInput.readOnly = true; // Prevent direct input
+         selector.appendChild(quantityInput);
+
+         const plusButton = document.createElement('button');
+         plusButton.classList.add('quantity-button', 'plus', 'bg-gray-600', 'hover:bg-gray-500', 'rounded-r', 'px-3', 'py-1');
+         plusButton.textContent = '+';
+         selector.appendChild(plusButton);
+
+         quantityDiv.appendChild(selector);
+         fragment.appendChild(quantityDiv);
+    }
+
+    optionsContainer.appendChild(fragment);
+
+     // After rendering, update the price based on initial selections
+     updateOptionsModalPrice();
+}
+
+function updateOptionsModalPrice() {
+    if (!currentProductForOptions || !optionsModalPrice) return;
+
+    let calculatedPrice = currentProductForOptions.price; // Start with the base price
+
+    // Apply price modifiers from selected options
+    if (currentProductForOptions.optionGroups && currentProductForOptions.optionGroups.length > 0) {
+        currentProductForOptions.optionGroups.forEach(group => {
+            const selectedValue = selectedOptions[group.name];
+            if (selectedValue) {
+                const selectedChoice = group.choices.find(choice => choice.value === selectedValue);
+                if (selectedChoice && selectedChoice.priceModifier !== undefined) {
+                    // Assuming priceModifier is a value to add to the base price
+                    calculatedPrice += selectedChoice.priceModifier;
+                }
+            }
+        });
+    }
+
+    // Price is also affected by quantity (Total Price = Price per item * Quantity)
+     calculatedPrice = calculatedPrice * selectedOptions.quantity;
 
 
-    if (viewName === 'all-products') {
-        allProductsView?.classList.add('active');
-        currentViewTitle = 'All Products';
-         // Ensure all products are rendered in this view's container
-         // Only re-render if the search bar is empty, otherwise search handles rendering
-         if (!document.getElementById('search-bar-container')?.classList.contains('active') || searchInput?.value.trim() === '') {
-             renderProducts(allProductsContainer, allProducts);
-         } else {
-              // If search is active, leave the search results rendered
+    selectedOptions.price = calculatedPrice; // Store the calculated price
+    optionsModalPrice.textContent = formatPrice(calculatedPrice); // Update displayed price
+}
+
+
+function handleOptionsModalInteraction(event) {
+    const button = event.target.closest('button');
+    if (!button || !currentProductForOptions) return; // Need a button and a product context
+
+     // Handle Quantity Buttons (+/-)
+    if (button.classList.contains('quantity-button')) {
+        const quantityInput = productOptionsModal.querySelector('.quantity-input'); // Find the input within the modal
+        if (!quantityInput) return;
+
+        let currentValue = parseInt(quantityInput.value);
+        if (button.classList.contains('plus')) {
+            currentValue++;
+        } else if (button.classList.contains('minus') && currentValue > 1) {
+            currentValue--;
+        }
+        quantityInput.value = currentValue;
+        selectedOptions.quantity = currentValue; // Update selected quantity
+        updateOptionsModalPrice(); // Update price based on new quantity
+    }
+     // Handle Option Choice Buttons (Duration, Screen Type etc.)
+    else if (button.classList.contains('duration-option')) {
+         const optionValue = button.dataset.optionValue;
+         const optionGroupName = button.dataset.optionGroupName;
+         const priceModifier = parseFloat(button.dataset.priceModifier);
+
+         if (optionValue && optionGroupName) {
+             // Deselect other options in the same group
+             productOptionsModal.querySelectorAll(`.duration-option[data-option-group-name="${optionGroupName}"]`).forEach(opt => {
+                 opt.classList.remove('active', 'bg-gray-600');
+             });
+             // Select the clicked option
+             button.classList.add('active', 'bg-gray-600');
+
+             // Update selected options
+             selectedOptions[optionGroupName] = optionValue;
+             // Note: Price update is handled by updateOptionsModalPrice,
+             // which recalculates based on ALL selected options and quantity.
+             updateOptionsModalPrice();
          }
-
-    } else if (viewName === 'home') {
-        categorizedProductsView?.classList.add('active');
-        bestSellersSection?.classList.add('active');
-         // Featured section visibility handled above
-
-        // Ensure categorized sections and best sellers are visible and have products rendered
-        categorizedProductsView?.querySelectorAll('.category-section').forEach(section => section.classList.add('active'));
-        // Products for these sections are rendered during fetchAndRenderData
-        // Re-render if necessary, but typically only need to show/hide sections
-        // renderProducts(streamingPlatformsContainer, filterProductsByCategory('streaming-services'));
-        // renderProducts(educationalServicesContainer, filterProductsByCategory('educational-tools'));
-        // renderProducts(appleServicesContainer, filterProductsByCategory('apple-services'));
-        // renderProducts(bestSellingProductsContainer, filterBestSellingProducts());
-
-    } else { // Category view
-        categorizedProductsView?.classList.add('active');
-        const targetSection = document.getElementById(`${viewName}-section`);
-        if (targetSection) {
-            targetSection.classList.add('active');
-            currentViewTitle = targetSection.querySelector('h2')?.textContent || viewName.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
-             // Ensure products for this category are rendered in its container
-             renderProducts(targetSection.querySelector('.grid'), filterProductsByCategory(viewName));
+    }
+     // Handle Add to Cart button
+    else if (button.id === 'options-modal-add-to-cart') {
+         // Check if required options are selected (e.g., if any option group is mandatory)
+         // For now, assuming all options are selected if rendered
+         addItemToCart(currentProductForOptions, selectedOptions.quantity, selectedOptions.duration, selectedOptions.price); // Pass all selected options
+         hideOptionsModal(); // Close modal after adding to cart
+    }
+    // Handle Buy it Now button
+    else if (button.id === 'options-modal-buy-now') {
+         // Implement Buy It Now logic (similar to Add to Cart but proceed directly to checkout)
+         console.log("Buy It Now clicked with selected options:", selectedOptions);
+          // You might want to add the item to cart first, then redirect to checkout
+          // addItemToCart(currentProductForOptions, selectedOptions.quantity, selectedOptions.duration, selectedOptions.price);
+          alert("Buy It Now - Proceeding to checkout (placeholder)"); // Placeholder
+         hideOptionsModal();
+    }
+     // Handle Order On WhatsApp button
+    else if (button.id === 'options-modal-whatsapp') {
+        const whatsappLink = button.dataset.whatsappLink;
+        if (whatsappLink) {
+            console.log(`Opening WhatsApp link from modal: ${whatsappLink}`);
+            window.open(whatsappLink, '_blank'); // Open link in new tab
+             // Decide if you want to close the modal after opening WhatsApp
+             // hideOptionsModal();
         } else {
-            console.warn('Category section not found:', viewName);
-            showView('home'); // Fallback to home if category not found
-            return;
+             console.warn("WhatsApp link not found for the current product.");
         }
     }
-    updateBreadcrumbs(currentViewTitle, viewName);
-    window.scrollTo(0, 0);
-}
-
-
-function updateBreadcrumbs(currentViewTitle, viewName) { if (!breadcrumbs) return; let breadcrumbHTML = `<a href="#" data-view="home" class="hover:text-white transition-colors">Home</a>`; if (viewName !== 'home') { breadcrumbHTML += ` <span class="separator" aria-hidden="true">/</span> `; if (viewName !== 'search-results') { breadcrumbHTML += `<span class="current-page" aria-current="page">${currentViewTitle}</span>`; } else { breadcrumbHTML += `<span class="current-page">${currentViewTitle}</span>`; } } else { breadcrumbHTML = `<span class="current-page" aria-current="page">Home</span>`; } breadcrumbs.innerHTML = breadcrumbHTML; }
-
-function handleSearchInput() {
-    const searchTerm = searchInput ? searchInput.value.trim() : '';
-    const filtered = filterProductsBySearch(searchTerm);
-    const isSearching = searchTerm.length > 0;
-
-    // Always show the all-products view when searching
-    showView('all-products'); // This will set the breadcrumbs and activate the all-products-view section
-     // Hide featured section when searching
-     if (featuredProductSection) featuredProductSection.classList.remove('active');
-
-    if (isSearching) {
-         renderProducts(allProductsContainer, filtered); // Render filtered results in the all products container
-         updateBreadcrumbs(`Search Results for "${searchTerm}"`, 'search-results'); // Update breadcrumbs for search
-    } else {
-         // If search is cleared, re-render all products in the all-products view
-         renderProducts(allProductsContainer, allProducts);
-         // The showView('all-products') call already set the breadcrumb to 'All Products'
+     // Handle See More link click (assuming it's an anchor tag, prevent default if necessary)
+    else if (button.id === 'options-modal-see-more' && event.target.tagName === 'A') {
+         // Prevent default navigation if you handle routing client-side
+         // event.preventDefault();
+         console.log("See More clicked for product:", currentProductForOptions);
+         // Implement navigation to product details page
+         hideOptionsModal(); // Close the modal
     }
 }
 
@@ -766,7 +1044,8 @@ function startSlideShow() { clearInterval(slideInterval); const numSlides = bann
 function resetSlideInterval() { clearInterval(slideInterval); startSlideShow(); }
 
 // --- Cart Logic ---
-function addItemToCart(product, quantity = 1, selectedDuration = null, selectedPrice = product.price) {
+// Updated addItemToCart to handle more complex options structure
+function addItemToCart(product, quantity = 1, selectedDuration = null, selectedPrice = product.price, selectedOptions = {}) {
      // Find the full product object from the allProducts array (important for latest data)
      const fullProduct = allProducts.find(p => p.id === product.id);
      if (!fullProduct || fullProduct.isSoldOut) {
@@ -774,31 +1053,42 @@ function addItemToCart(product, quantity = 1, selectedDuration = null, selectedP
          return;
      }
 
-     // Determine the price based on selected duration if applicable, otherwise use base price
-     let priceToUse = fullProduct.price; // Default to base price from data
-     if (selectedDuration && fullProduct.durationOptions && fullProduct.durationOptions.length > 0) {
-         const selectedOption = fullProduct.durationOptions.find(option => option.duration === selectedDuration);
-         if (selectedOption) {
-             priceToUse = selectedOption.price;
-         } else {
-             console.warn(`Selected duration "${selectedDuration}" not found for product ${fullProduct.id}. Using base price.`);
-         }
-     } else if (selectedPrice !== undefined && selectedPrice !== null) {
-         // Fallback to explicitly passed selectedPrice if no duration is selected/found
-         priceToUse = selectedPrice;
-     }
+     // Determine the final price based on selected options
+     let finalPrice = fullProduct.price; // Start with the base price
+      if (fullProduct.optionGroups && fullProduct.optionGroups.length > 0) {
+          fullProduct.optionGroups.forEach(group => {
+              const selectedValue = selectedOptions[group.name];
+              if (selectedValue) {
+                  const selectedChoice = group.choices.find(choice => choice.value === selectedValue);
+                  if (selectedChoice && selectedChoice.priceModifier !== undefined) {
+                       // Apply price modifier - assuming priceModifier is an absolute price *override* for now
+                       // If priceModifier is meant to be added: finalPrice += selectedChoice.priceModifier;
+                       // Let's assume it's an override for simplicity based on the image showing a fixed price
+                        finalPrice = selectedChoice.priceModifier; // Override base price with option price
+                  }
+              }
+          });
+      } else if (selectedPrice !== undefined && selectedPrice !== null) {
+          // Fallback to explicitly passed selectedPrice if no optionGroups are used
+          finalPrice = selectedPrice;
+      }
+
       // Ensure priceToUse is a number
-      priceToUse = typeof priceToUse === 'number' ? priceToUse : parseFloat(String(priceToUse).replace(/[^\d.-]/g, '')) || 0;
+      finalPrice = typeof finalPrice === 'number' ? finalPrice : parseFloat(String(finalPrice).replace(/[^\d.-]/g, '')) || 0;
 
-
-     // Generate a unique cart item ID based on product ID and selected options (duration/price)
-     // This ensures different durations of the same product are treated as separate line items
+     // Generate a unique cart item ID based on product ID and selected options
      let cartItemId = fullProduct.id;
-     if (selectedDuration) {
-         cartItemId += `-${selectedDuration.replace(/\s+/g, '-')}`; // Append duration, sanitize spaces
-     } else if (fullProduct.showQuantity) {
-          // If only quantity matters, the base ID is enough unless other options are added later
+     if (fullProduct.optionGroups && fullProduct.optionGroups.length > 0) {
+         // Append selected option values to the ID for uniqueness
+         Object.keys(selectedOptions).forEach(groupName => {
+              if (selectedOptions[groupName]) {
+                  cartItemId += `-${groupName.replace(/\s+/g, '-')}-${selectedOptions[groupName].replace(/\s+/g, '-')}`;
+              }
+         });
+     } else if (selectedDuration) { // Keep old duration logic for compatibility if no optionGroups
+         cartItemId += `-${selectedDuration.replace(/\s+/g, '-')}`;
      }
+     // If only quantity matters and no other options, the base ID is sufficient.
 
 
      const existingItemIndex = cartItems.findIndex(item => item.cartItemId === cartItemId);
@@ -810,10 +1100,12 @@ function addItemToCart(product, quantity = 1, selectedDuration = null, selectedP
              cartItemId, // Use the generated unique ID
              id: fullProduct.id,
              name: fullProduct.name,
-             price: priceToUse, // Use the determined price
+             price: finalPrice, // Use the determined final price
              quantity,
+             // Store selected options explicitly if optionGroups are used
+             selectedOptions: fullProduct.optionGroups?.length > 0 ? selectedOptions : (selectedDuration ? { 'Duration': selectedDuration } : {}),
              imageUrl: fullProduct.imageUrl,
-             selectedDuration // Store selected duration
+             selectedDuration: selectedDuration // Keep for compatibility with existing cart rendering if needed
          });
      }
      console.log("Cart updated:", cartItems);
@@ -832,10 +1124,17 @@ function handleProductCardInteraction(event) {
     // Find the closest product card element using the data-product-id attribute
     const productCard = event.target.closest('.product-card');
     // If the click was on a button, but not inside a product card (e.g., banner nav), exit
-    if (!productCard) return;
+    // Note: Featured product button is handled via delegation on its section, which is also a 'product-card' in a sense
+     const featuredProductButton = event.target.closest('#featured-buy-now');
+    if (!productCard && !featuredProductButton) return;
 
-    // Get the product ID from the data-product-id attribute on the card
-    const productId = productCard.dataset.productId;
+     // Get the product ID. Prioritize data-product-id on the button, then on the card/featured section.
+    const productId = button.dataset.productId || productCard?.dataset.productId || featuredProductButton?.dataset.productId;
+
+    if (!productId) {
+         console.warn("Could not find product ID for interaction:", event.target);
+         return; // Exit if no product ID is found
+    }
 
     // Find the product data in the global allProducts array using the productId
     const product = allProducts.find(p => p.id === productId);
@@ -844,25 +1143,23 @@ function handleProductCardInteraction(event) {
         return; // Exit if product data isn't found
     }
 
-    // --- Removed handling for inline quantity buttons and duration options ---
-    // if (button.classList.contains('quantity-button')) { ... }
-    // else if (button.classList.contains('duration-option')) { ... }
-    // --- End Removed handling ---
-
-
     if (button.classList.contains('add-to-cart-button')) {
-        // This button is only shown for products *without* inline options
+        // This button is only shown for products *without* inline options or whatsapp link
         // Default quantity is 1, no duration is selected
         addItemToCart(product, 1, null, product.price); // Pass the product object and default options
     } else if (button.classList.contains('choose-options-button')) {
         console.log(`Choose options clicked for product ${productId}`);
-        // *** Placeholder for your future modal/popup logic ***
-        // When you implement the modal, this is where you'll show it,
-        // allow the user to select duration/quantity, and then call `addItemToCart`
-        // with the selected options and corresponding price.
-        alert(`Please select options for ${product.name}. Options available: Durations: ${product.durationOptions?.map(o => o.duration).join(', ')}, Quantity Selectable: ${product.showQuantity}`); // Placeholder for now
+        // Show the product options modal
+        showOptionsModal(product);
+    } else if (button.classList.contains('whatsapp-button')) {
+        const whatsappLink = button.dataset.whatsappLink;
+        if (whatsappLink) {
+            console.log(`Opening WhatsApp link for product ${productId}: ${whatsappLink}`);
+            window.open(whatsappLink, '_blank'); // Open link in new tab
+        } else {
+             console.warn(`WhatsApp link not found for product ${productId}`);
+        }
     }
-    // Removed the 'whatsapp-button' handling logic for general product cards
 }
 
 // --- Featured Product Button Handlers ---
@@ -882,22 +1179,39 @@ function renderFeaturedProduct(product) {
     featuredProductTitle.textContent = product.name || 'Featured Product';
     featuredProductDescription.textContent = product.description || '';
 
-    // Update the "Buy Now" button's data-product-id and class
-     const buyNowButton = featuredProductSection.querySelector('#featured-buy-now');
-     if (buyNowButton) {
-         buyNowButton.setAttribute('data-product-id', product.id);
-         // If the featured product requires options, change the button text/class
-         const requiresOptions = (product.durationOptions?.length > 0 || product.showQuantity);
-         if (requiresOptions) {
-              buyNowButton.textContent = 'Choose options';
-              buyNowButton.classList.remove('add-to-cart-button');
-              buyNowButton.classList.add('choose-options-button');
-         } else {
-             buyNowButton.innerHTML = '<i class="fas fa-cart-plus mr-2"></i> Add to cart'; // Revert to Add to Cart
-             buyNowButton.classList.remove('choose-options-button');
-             buyNowButton.classList.add('add-to-cart-button');
+    // Update the featured buttons container
+    const featuredButtonsContainer = featuredProductSection.querySelector('.featured-buttons');
+     if (featuredButtonsContainer) {
+         featuredButtonsContainer.innerHTML = ''; // Clear existing buttons
+
+         const isActionable = !product.isSoldOut;
+         const requiresOptions = (product.optionGroups?.length > 0 || product.showQuantity); // Check optionGroups now
+         const hasAddToCart = product.addToCartLink; // Assuming addToCartLink exists means it can be added to cart
+         const hasWhatsApp = product.whatsappLink;
+
+         let primaryButtonHTML = '';
+         let secondaryButtonHTML = '';
+
+         // Determine primary button
+         if (isActionable && requiresOptions) {
+              primaryButtonHTML = `<button id="featured-buy-now" class="action-button btn-blue choose-options-button" data-product-id="${product.id}">Choose options</button>`;
+         } else if (isActionable && hasAddToCart && !requiresOptions) { // Ensure it doesn't require options if showing Add to Cart
+              primaryButtonHTML = `<button id="featured-buy-now" class="action-button btn-blue add-to-cart-button" data-product-id="${product.id}"><i class="fas fa-cart-plus mr-2"></i> Add to cart</button>`;
+         } else if (isActionable && hasWhatsApp && !requiresOptions && !hasAddToCart) { // Ensure it's WhatsApp only if it's the primary action
+             primaryButtonHTML = `<button id="featured-buy-now" class="action-button btn-green whatsapp-button" data-product-id="${product.id}" data-whatsapp-link="${product.whatsappLink}"><i class="fab fa-whatsapp mr-2"></i> Order On WhatsApp</button>`;
+         } else if (!isActionable) {
+             // Product is not actionable (e.g., sold out), no buttons
+              primaryButtonHTML = ''; // Explicitly empty
          }
-         buyNowButton.disabled = product.isSoldOut; // Disable if sold out
+
+
+         // Determine secondary button (WhatsApp, if not primary and exists)
+         if (isActionable && hasWhatsApp && primaryButtonHTML && !primaryButtonHTML.includes('whatsapp-button')) {
+             secondaryButtonHTML = `<button class="action-button btn-green whatsapp-button" data-product-id="${product.id}" data-whatsapp-link="${product.whatsappLink}"><i class="fab fa-whatsapp mr-2"></i> Order On WhatsApp</button>`;
+         }
+
+          featuredButtonsContainer.innerHTML = primaryButtonHTML + secondaryButtonHTML;
+
      }
 
 
