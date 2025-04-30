@@ -411,18 +411,18 @@ header {
 }
 
 
-.duration-options {
+.duration-options { /* Reusing this class for modal options */
     margin-bottom: 1rem;
 }
 
-.duration-options h3 {
+.duration-options h3 { /* Reusing this class for modal option titles */
     font-size: 0.9rem;
     font-weight: 600;
     margin-bottom: 0.5rem;
     color: #b3b3b3;
 }
 
-.duration-option {
+.duration-option { /* Reusing this class for modal option buttons */
     padding: 0.5rem 1rem;
     border: 1px solid #555555;
     border-radius: 0.25rem;
@@ -439,7 +439,7 @@ header {
  }
 
 
-.quantity-selector {
+.quantity-selector { /* Reusing this class for modal quantity selector */
     display: flex;
     align-items: center;
     border: 1px solid #555555;
@@ -449,14 +449,14 @@ header {
     margin-bottom: 1rem;
 }
 
- .quantity-selector h3 {
+ .quantity-selector h3 { /* Reusing this class for modal quantity title */
     font-size: 0.9rem;
     font-weight: 600;
     margin-bottom: 0.5rem;
     color: #b3b3b3;
  }
 
-.quantity-button {
+.quantity-button { /* Reusing this class for modal quantity buttons */
     padding: 0.5rem 0.75rem;
     background-color: #555555;
     cursor: pointer;
@@ -470,7 +470,7 @@ header {
 .quantity-button:hover {
      background-color: #666666;
 }
-.quantity-input {
+.quantity-input { /* Reusing this class for modal quantity input */
     flex-grow: 1;
     text-align: center;
     padding: 0.5rem 0;
@@ -614,7 +614,7 @@ header {
     display: block;
  }
 
- /* Login Modal Styles */
+ /* Modal Styles (for Login and Product Options) */
 .modal-overlay {
     position: fixed;
     top: 0;
@@ -626,12 +626,13 @@ header {
     display: none; /* Hidden by default */
     justify-content: center;
     align-items: center;
+    overflow-y: auto; /* Allow modal content to scroll if needed */
 }
 .modal-overlay.visible {
     display: flex; /* Use flex to center content */
 }
 
-.login-modal {
+.login-modal { /* Basic modal styling - reused for options modal */
     background-color: #1e1e1e; /* Slightly lighter than body */
     padding: 2rem;
     border-radius: 0.5rem;
@@ -640,7 +641,14 @@ header {
     max-width: 400px; /* Max width for the modal */
     position: relative; /* For close button positioning */
     color: #ffffff;
+    max-height: 90vh; /* Limit height and enable internal scroll if needed */
+    overflow-y: auto; /* Allow modal content to scroll internally */
 }
+
+#product-options-modal {
+    /* Specific styles for the options modal if needed, overrides login-modal */
+}
+
 
 .modal-close-icon {
     position: absolute;
@@ -661,6 +669,12 @@ header {
     margin-bottom: 1.5rem;
     text-align: center;
 }
+
+#product-options-modal h2 { /* Style for product name in options modal */
+    font-size: 1.5rem; /* Slightly smaller than main modal title */
+    margin-bottom: 1rem;
+}
+
 
 .login-modal label {
     display: block;
@@ -686,7 +700,7 @@ header {
     border-color: #007bff; /* Highlight on focus */
 }
 
-.login-modal button {
+.login-modal button { /* Basic button styles - reused */
     width: 100%;
     padding: 0.8rem;
     font-size: 1.1rem;
