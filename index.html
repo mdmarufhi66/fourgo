@@ -9,10 +9,10 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;700&display=swap" rel="stylesheet">
 
+    <link rel="stylesheet" href="style.css">
+
     <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-auth-compat.js"></script>
-
-    <link rel="stylesheet" href="style.css">
 </head>
 <body class="p-4">
     <div id="side-menu" class="side-menu">
@@ -60,29 +60,6 @@
                 <button type="submit" id="login-button" class="btn-login">Login</button>
                 <button type="button" id="signup-button" class="btn-signup">Sign Up</button>
             </form>
-        </div>
-    </div>
-
-    <div id="product-options-modal-overlay" class="modal-overlay">
-        <div id="product-options-modal" class="login-modal"> <i id="options-modal-close-icon" class="fas fa-times modal-close-icon" aria-label="Close options modal"></i>
-            <h2 id="options-modal-product-name" class="text-center text-xl font-bold mb-4">Product Name</h2>
-             <div class="flex items-center justify-center mb-4 text-lg font-bold">
-                 <span id="options-modal-price" class="text-white">Tk 0.00 BDT</span>
-                  <div id="options-modal-rating" class="rating text-sm ml-4" role="img" aria-label="Rating"></div>
-             </div>
-
-
-            <div id="options-container">
-                </div>
-
-            <div class="action-buttons mt-6 space-y-3">
-                <button id="options-modal-add-to-cart" class="action-button btn-blue"><i class="fas fa-cart-plus mr-2"></i> Add to cart</button>
-                 <button id="options-modal-buy-now" class="action-button btn-blue">Buy it now</button> <button id="options-modal-whatsapp" class="action-button btn-green"><i class="fab fa-whatsapp mr-2"></i> Order On WhatsApp</button>
-            </div>
-
-            <div class="mt-4 text-center">
-                <a href="#" id="options-modal-see-more" class="text-sm text-gray-400 hover:text-white transition-colors">See More</a>
-            </div>
         </div>
     </div>
 
@@ -147,12 +124,12 @@
 
     <main class="container mx-auto px-4">
         <nav id="breadcrumbs" class="mb-6" aria-label="Breadcrumb">
-        </nav>
+            </nav>
 
         <section id="best-sellers-section" class="best-sellers-section mb-12" aria-labelledby="best-sellers-heading">
             <h2 id="best-sellers-heading" class="text-2xl font-bold mb-6 text-center md:text-left">Best Selling Products</h2>
             <div id="best-selling-products-container" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            </div>
+                </div>
         </section>
 
 
@@ -188,9 +165,11 @@
                 <h3 id="featured-product-title" class="featured-title"></h3>
                 <p id="featured-product-description" class="featured-description"></p>
                 <div class="featured-buttons">
+                    <button id="featured-buy-now" class="action-button btn-blue">Buy Now</button>
                     </div>
             </div>
         </section>
+
         <div class="mt-16 border-t border-gray-700 pt-10">
             <div class="grid grid-cols-1 md:grid-cols-2 gap-10">
                 <div>
