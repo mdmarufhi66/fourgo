@@ -3,913 +3,210 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FANFLIX</title> <script src="https://cdn.tailwindcss.com"></script>
+    <title>FANFLIX</title>
+    <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet"> <style>
-        /* Custom styles for closer cloning */
-        body {
-            font-family: 'Inter', sans-serif;
-            background-color: #121212; /* Deeper dark background */
-            color: #ffffff; /* Pure white text for better contrast */
-            overflow-x: hidden; /* Prevent horizontal scroll when menu is open */
-        }
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;700&display=swap" rel="stylesheet">
 
-        /* Header Styling */
-        header {
-            background-color: #1a1a1a; /* Slightly different header background */
-            border-bottom: 1px solid #333333; /* Subtle border */
-        }
+    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-auth-compat.js"></script>
 
-        .fanflix-logo {
-            color: #e50914; /* Netflix red-like color */
-            font-weight: 900; /* Extra bold */
-            letter-spacing: -0.05em; /* Tighter spacing */
-        }
-
-        /* Product Card Styling */
-        .product-card {
-            background-color: #1a1a1a; /* Card background */
-            border-radius: 0.5rem; /* Rounded corners */
-            overflow: hidden;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3); /* Stronger shadow */
-            display: flex;
-            flex-direction: column;
-            position: relative;
-            border: 1px solid #333333; /* Subtle border */
-        }
-
-        .product-image {
-            width: 100%;
-            height: 180px; /* Fixed height for consistency, adjust as needed */
-            object-fit: cover; /* Ensures image covers the area */
-        }
-
-        .product-info {
-             padding: 1rem; /* Adjusted padding */
-             display: flex;
-             flex-direction: column;
-             flex-grow: 1;
-        }
-
-        .product-name {
-            font-size: 1.1rem; /* Slightly smaller title */
-            font-weight: 600; /* Semi-bold */
-            margin-bottom: 0.5rem; /* Adjusted margin */
-        }
-
-        .product-description {
-            font-size: 0.8rem; /* Smaller description text */
-            color: #b3b3b3; /* Lighter gray for description */
-            margin-bottom: 0.75rem; /* Adjusted margin */
-        }
-
-        .rating {
-            margin-bottom: 0.75rem; /* Adjusted margin */
-        }
-
-        .rating .fa-star {
-            color: #ffb400; /* More vibrant yellow for stars */
-        }
-
-        .rating .fa-star-o {
-            color: #555555; /* Darker gray for empty stars */
-        }
-
-        .rating-count {
-            font-size: 0.8rem; /* Smaller rating count */
-            color: #b3b3b3; /* Lighter gray */
-            margin-left: 0.25rem; /* Adjusted spacing */
-        }
-
-        .product-price {
-            font-size: 1.2rem; /* Slightly larger price */
-            font-weight: 700; /* Bold */
-            margin-bottom: 1rem; /* Adjusted margin */
-            color: #ffffff; /* White price */
-        }
-
-        .action-buttons {
-            margin-top: auto; /* Push buttons to the bottom */
-            display: flex;
-            flex-direction: column;
-            gap: 0.75rem; /* Spacing between buttons */
-        }
-
-        .action-button {
-            width: 100%;
-            padding: 0.75rem 1rem; /* Adjusted padding */
-            font-weight: 700; /* Bold */
-            border-radius: 0.25rem; /* Slightly less rounded buttons */
-            transition: background-color 0.3s ease, opacity 0.3s ease;
-            text-align: center;
-            cursor: pointer;
-        }
-
-        .btn-blue {
-            background-color: #007bff; /* Blue button color */
-            color: white;
-        }
-
-        .btn-blue:hover:not(:disabled) {
-            background-color: #0056b3; /* Darker blue on hover */
-        }
-
-        .btn-green {
-            background-color: #28a745; /* Green button color */
-            color: white;
-        }
-
-        .btn-green:hover:not(:disabled) {
-            background-color: #218838; /* Darker green on hover */
-        }
-
-        .action-button:disabled {
-            opacity: 0.6;
-            cursor: not-allowed;
-        }
-
-
-        .duration-options {
-            margin-bottom: 1rem; /* Adjusted margin */
-        }
-
-        .duration-options h3 {
-            font-size: 0.9rem;
-            font-weight: 600;
-            margin-bottom: 0.5rem;
-            color: #b3b3b3;
-        }
-
-        .duration-option {
-            padding: 0.5rem 1rem;
-            border: 1px solid #555555; /* Border color */
-            border-radius: 0.25rem;
-            cursor: pointer;
-            transition: background-color 0.3s ease, border-color 0.3s ease;
-            font-size: 0.9rem;
-        }
-        .duration-option.active {
-            background-color: #555555; /* Highlight active option */
-            border-color: #555555;
-        }
-         .duration-option:hover {
-             background-color: #444444;
-         }
-
-
-        .quantity-selector {
-            display: flex;
-            align-items: center;
-            border: 1px solid #555555;
-            border-radius: 0.25rem;
-            overflow: hidden;
-            width: 100px; /* Adjusted width */
-            margin-bottom: 1rem; /* Adjusted margin */
-        }
-
-         .quantity-selector h3 {
-            font-size: 0.9rem;
-            font-weight: 600;
-            margin-bottom: 0.5rem;
-            color: #b3b3b3;
-         }
-
-        .quantity-button {
-            padding: 0.5rem 0.75rem; /* Adjusted padding */
-            background-color: #555555;
-            cursor: pointer;
-            user-select: none;
-            transition: background-color 0.3s ease;
-            font-size: 1rem;
-        }
-        .quantity-button:hover {
-             background-color: #666666;
-        }
-        .quantity-input {
-            flex-grow: 1;
-            text-align: center;
-            padding: 0.5rem 0;
-            background-color: transparent;
-            border: none;
-            color: #ffffff;
-            outline: none;
-            font-size: 1rem;
-        }
-
-        .sold-out-overlay {
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background-color: rgba(0, 0, 0, 0.8); /* More opaque overlay */
-            color: white;
-            font-size: 1.8rem; /* Larger text */
-            font-weight: bold;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            z-index: 10;
-            text-transform: uppercase; /* Uppercase text */
-        }
-
-        /* Side Menu Styles */
-        .side-menu {
-            position: fixed;
-            top: 0;
-            left: -300px;
-            width: 280px; /* Slightly adjusted width */
-            height: 100%;
-            background-color: #1a1a1a; /* Menu background color */
-            color: #ffffff;
-            transition: left 0.3s ease-in-out;
-            z-index: 20;
-            padding: 1.5rem;
-            box-shadow: 2px 0 5px rgba(0, 0, 0, 0.7); /* Stronger shadow */
-            display: flex;
-            flex-direction: column;
-            overflow-y: auto;
-        }
-
-        .side-menu.open {
-            left: 0;
-        }
-
-        .menu-close-icon {
-            text-align: right;
-            margin-bottom: 1.5rem;
-            font-size: 1.8rem; /* Larger close icon */
-            cursor: pointer;
-            color: #b3b3b3; /* Lighter gray color */
-        }
-         .menu-close-icon:hover {
-             color: #ffffff;
-         }
-
-
-        .menu-links ul {
-            list-style: none;
-            padding: 0;
-            margin: 0;
-        }
-
-        .menu-links li {
-            margin-bottom: 1.2rem; /* Increased spacing */
-        }
-
-        .menu-links a {
-            color: #b3b3b3; /* Lighter gray links */
-            text-decoration: none;
-            font-size: 1.1rem;
-            transition: color 0.3s ease;
-        }
-
-        .menu-links a:hover {
-            color: #ffffff; /* White on hover */
-        }
-
-         .menu-bottom-links {
-            margin-top: auto;
-            padding-top: 1.5rem;
-            border-top: 1px solid #333333; /* Border color */
-        }
-
-         .menu-bottom-links .social-icons {
-            display: flex;
-            justify-center;
-            space-x-6;
-            color: #b3b3b3; /* Lighter gray social icons */
-            text-2xl;
-            margin-bottom: 1.5rem;
-         }
-         .menu-bottom-links .social-icons a:hover {
-             color: #ffffff; /* White on hover */
-         }
-
-
-         .overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0, 0, 0, 0.7); /* More opaque overlay */
-            z-index: 15;
-            display: none;
-         }
-
-         .overlay.visible {
-            display: block;
-         }
-
-         /* Styles for different views */
-         .view-section {
-             display: none;
-         }
-
-         .view-section.active {
-             display: block;
-         }
-
-         /* Styles for individual category sections within categorized view */
-         .category-section {
-             display: none;
-         }
-
-         .category-section.active {
-             display: block;
-         }
-
-         /* Breadcrumbs Styling */
-         #breadcrumbs {
-            font-size: 0.9rem;
-            color: #b3b3b3;
-            margin-bottom: 1.5rem; /* Increased margin */
-         }
-         #breadcrumbs a {
-             color: #b3b3b3;
-             text-decoration: none;
-             transition: color 0.3s ease;
-         }
-          #breadcrumbs a:hover {
-              color: #ffffff;
-          }
-          #breadcrumbs span {
-              color: #555555; /* Separator color */
-          }
-
-
-    </style>
+    <link rel="stylesheet" href="style.css">
 </head>
 <body class="p-4">
-
     <div id="side-menu" class="side-menu">
         <div class="menu-close-icon">
-            <i class="fas fa-times cursor-pointer"></i> </div>
+            <i class="fas fa-times cursor-pointer"></i>
+        </div>
         <div class="menu-links">
             <ul>
-                <li><a href="#" data-view="home">Home</a></li> <li><a href="#" data-view="all-products">All Products</a></li>
+                <li><a href="#" data-view="home">Home</a></li>
+                <li><a href="#" data-view="all-products">All Products</a></li>
                 <li><a href="#" data-view="streaming-services">Streaming Services</a></li>
                 <li><a href="#" data-view="educational-tools">Educational Tools</a></li>
                 <li><a href="#" data-view="apple-services">Apple Services</a></li>
-            </ul>
+                 </ul>
         </div>
         <div class="menu-bottom-links">
-             <div class="flex justify-center space-x-6 text-gray-400 text-2xl social-icons">
-                <a href="#" class="hover:text-white transition duration-300 ease-in-out"><i class="fab fa-facebook"></i></a>
-                <a href="#" class="hover:text-white transition duration-300 ease-in-out"><i class="fab fa-instagram"></i></a>
-                <a href="#" class="hover:text-white transition duration-300 ease-in-out"><i class="fab fa-youtube"></i></a>
-                <a href="#" class="hover:text-white transition duration-300 ease-in-out"><i class="fab fa-twitter"></i></a> </div>
-             <button class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-6 rounded transition duration-300 ease-in-out mb-4 action-button btn-green"> Order On WhatsApp
-             </button>
-             <div class="text-center">
-                 <a href="#" class="policy-link text-center"><i class="fas fa-user-circle mr-2"></i> Log in</a>
+             <div class="social-icons">
+                <a href="#" aria-label="Facebook" class="hover:text-white transition duration-300 ease-in-out"><i class="fab fa-facebook"></i></a>
+                <a href="#" aria-label="Instagram" class="hover:text-white transition duration-300 ease-in-out"><i class="fab fa-instagram"></i></a>
+                <a href="#" aria-label="YouTube" class="hover:text-white transition duration-300 ease-in-out"><i class="fab fa-youtube"></i></a>
+                <a href="#" aria-label="Twitter" class="hover:text-white transition duration-300 ease-in-out"><i class="fab fa-twitter"></i></a>
+             </div>
+             <div id="menu-auth-container" class="text-center">
+                 <a href="#" id="menu-login-link" class="auth-link"><i class="fas fa-sign-in-alt"></i> Log in</a>
              </div>
         </div>
     </div>
 
     <div id="menu-overlay" class="overlay"></div>
 
+    <div id="login-modal-overlay" class="modal-overlay">
+        <div class="login-modal">
+            <i id="modal-close-icon" class="fas fa-times modal-close-icon" aria-label="Close login modal"></i>
+            <h2>Login or Sign Up</h2>
+            <form id="login-form">
+                <div>
+                    <label for="login-email">Email</label>
+                    <input type="email" id="login-email" name="email" required autocomplete="email">
+                </div>
+                <div>
+                    <label for="login-password">Password</label>
+                    <input type="password" id="login-password" name="password" required autocomplete="current-password">
+                </div>
+                <div id="login-error" class="modal-error"></div>
+                <button type="submit" id="login-button" class="btn-login">Login</button>
+                <button type="button" id="signup-button" class="btn-signup">Sign Up</button>
+            </form>
+        </div>
+    </div>
 
-    <header class="flex justify-between items-center py-4 px-2 mb-8">
+
+    <div id="search-bar-container" class="search-bar-container">
+        <input type="text" id="search-input" class="search-input" placeholder="Search for products...">
+        <i id="search-close-icon" class="fas fa-times search-close-icon" aria-label="Close search"></i>
+    </div>
+
+    <div id="cart-container" class="cart-container">
+        <div class="cart-header">
+            <h2>Your Cart</h2>
+            <i id="cart-close-icon" class="fas fa-times cart-close-icon" aria-label="Close cart"></i>
+        </div>
+        <div id="cart-items" class="cart-items">
+            <p class="text-center text-gray-500">Your cart is empty.</p>
+        </div>
+        <div class="cart-summary">
+            <div class="cart-total">
+                <span>Total:</span>
+                <span id="cart-total-price">Tk 0.00 BDT</span>
+            </div>
+            <button class="checkout-button">
+                Proceed to Checkout
+            </button>
+        </div>
+    </div>
+
+
+    <header class="flex justify-between items-center py-4 px-4 md:px-6 mb-8">
         <div class="flex items-center">
-            <i id="menu-icon" class="fas fa-bars text-xl mr-4 cursor-pointer"></i>
-            <h1 class="text-2xl font-bold fanflix-logo">FANFLIX</h1> </div>
-        <div class="flex items-center">
-            <i class="fas fa-search text-xl mr-4 cursor-pointer"></i>
-            <i class="fas fa-shopping-cart text-xl cursor-pointer"></i>
+            <i id="menu-icon" class="fas fa-bars header-icon mr-4" aria-label="Open menu"></i>
+            <a href="#" data-view="home" class="header__heading-logo-wrapper">
+                <img src="//www.fanflixbd.com/cdn/shop/files/IMG_2249.png?v=1739793911&width=600"
+                     alt="FANFLIX - OTT SUBSCRIPTIONS BD"
+                     srcset="//www.fanflixbd.com/cdn/shop/files/IMG_2249.png?v=1739793911&width=200 200w, //www.fanflixbd.com/cdn/shop/files/IMG_2249.png?v=1739793911&width=300 300w, //www.fanflixbd.com/cdn/shop/files/IMG_2249.png?v=1739793911&width=400 400w"
+                     width="200"
+                     height="55" loading="eager"
+                     class="header-logo-img" sizes="(max-width: 400px) 50vw, 200px">
+            </a>
+        </div>
+        <div id="header-auth-icons" class="flex items-center space-x-5">
+            <i id="search-icon" class="fas fa-search header-icon" aria-label="Open search"></i>
+            <i id="cart-icon" class="fas fa-shopping-cart header-icon" aria-label="Open shopping cart"></i>
+            <div id="header-auth-container">
+                 <i id="login-icon" class="fas fa-user header-icon" aria-label="Open login"></i>
+            </div>
         </div>
     </header>
 
-    <main class="container mx-auto">
-
-        <div id="breadcrumbs" class="text-sm text-gray-400 mb-4">
+    <section class="banner-container mb-12">
+        <div class="banner-slides">
             </div>
+        <div class="banner-navigation">
+            <button class="nav-button prev-button" aria-label="Previous slide"><i class="fas fa-chevron-left"></i></button>
+            <button class="nav-button next-button" aria-label="Next slide"><i class="fas fa-chevron-right"></i></button>
+        </div>
+        <div class="banner-indicators">
+            </div>
+    </section>
 
-        <div id="all-products-view" class="view-section">
-             <h2 class="text-2xl font-bold mb-6">All Products</h2>
-             <div id="all-products-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+
+    <main class="container mx-auto px-4">
+        <nav id="breadcrumbs" class="mb-6" aria-label="Breadcrumb">
+        </nav>
+
+        <section id="best-sellers-section" class="best-sellers-section mb-12" aria-labelledby="best-sellers-heading">
+            <h2 id="best-sellers-heading" class="text-2xl font-bold mb-6 text-center md:text-left">Best Selling Products</h2>
+            <div id="best-selling-products-container" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            </div>
+        </section>
+
+
+        <section id="all-products-view" class="view-section" aria-labelledby="all-products-heading">
+            <h2 id="all-products-heading" class="text-2xl font-bold mb-6 text-center md:text-left">All Products</h2>
+             <div id="all-products-container" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                  </div>
-        </div>
+        </section>
 
-        <div id="categorized-products-view" class="view-section active"> <div id="streaming-services-section" class="category-section active"> <h2 class="text-2xl font-bold mb-6">STREAMING PLATFORMS</h2>
-                <div id="streaming-platforms-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
+        <section id="categorized-products-view" class="view-section active" aria-label="Product Categories">
+            <div id="streaming-services-section" class="category-section active mb-12" aria-labelledby="streaming-heading">
+                <h2 id="streaming-heading" class="text-2xl font-bold mb-6 text-center md:text-left">STREAMING PLATFORMS</h2>
+                <div id="streaming-platforms-container" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                     </div>
             </div>
 
-
-            <div id="educational-tools-section" class="category-section"> <h2 class="text-2xl font-bold mb-6 mt-12">Educational Services</h2>
-                 <div id="educational-services-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
+            <div id="educational-tools-section" class="category-section mb-12" aria-labelledby="educational-heading">
+                 <h2 id="educational-heading" class="text-2xl font-bold mb-6 text-center md:text-left">Educational Services</h2>
+                 <div id="educational-services-container" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                     </div>
             </div>
 
-            <div id="apple-services-section" class="category-section"> <h2 class="text-2xl font-bold mb-6 mt-12">Apple Services</h2>
-                 <div id="apple-services-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
+            <div id="apple-services-section" class="category-section mb-12" aria-labelledby="apple-heading">
+                 <h2 id="apple-heading" class="text-2xl font-bold mb-6 text-center md:text-left">Apple Services</h2>
+                 <div id="apple-services-container" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                     </div>
             </div>
-        </div>
+        </section>
 
-
-        <div class="mt-12 border-t border-gray-700 pt-8">
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+        <section id="featured-product-section" class="mb-12">
+             <img id="featured-product-image" src="" alt="Featured Product Image" class="featured-image" onerror="this.onerror=null;this.src='https://placehold.co/1200x400/1a1a1a/ffffff?text=Featured+Image+Error';">
+            <div class="featured-content">
+                <h3 id="featured-product-title" class="featured-title"></h3>
+                <p id="featured-product-description" class="featured-description"></p>
+                <div class="featured-buttons">
+                    <button id="featured-buy-now" class="action-button btn-blue">Buy Now</button>
+                </div>
+            </div>
+        </section>
+        <div class="mt-16 border-t border-gray-700 pt-10">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-10">
                 <div>
-                    <h2 class="text-2xl font-bold mb-4">FANFLIX BD</h2>
-                    <p class="text-gray-400 mb-6">
+                    <a href="#" data-view="home" class="inline-block mb-4">
+                        <img src="//www.fanflixbd.com/cdn/shop/files/IMG_2249.png?v=1739793911&width=600"
+                              alt="FANFLIX - OTT SUBSCRIPTIONS BD"
+                              width="150" height="41"
+                              loading="lazy" class="header-logo-img"
+                              style="max-height: 35px;" >
+                    </a>
+                    <p class="text-gray-400 mb-6 leading-relaxed">
                         FanFlix BD is an independent platform in Bangladesh, offering
                         easy access to popular digital subscriptions using local payment
-                        methods.
+                        methods like bKash, Nagad, Rocket, and Bank Transfer. We provide genuine, reliable services.
                     </p>
                     </div>
 
-                <div>
-                    <h3 class="text-xl font-semibold mb-4">OUR POLICY</h3>
-                    <ul class="space-y-2">
-                        <li><a href="#" class="policy-link">Refund & Exchange Policy</a></li>
-                        <li><a href="#" class="policy-link">Terms & Conditions</a></li>
-                        <li><a href="#" class="policy-link">Privacy Policy</a></li>
-                        <li><a href="#" class="policy-link">Order & Cancellation Policy</a></li>
-                        <li><a href="#" class="policy-link">EULA</a></li>
-                        <li><a href="#" class="policy-link">Trademark</a></li>
+                <nav aria-label="Policy links">
+                    <h3 class="text-xl font-semibold mb-4 uppercase tracking-wider">Our Policies</h3>
+                    <ul class="space-y-3">
+                        <li><a href="#" class="policy-link hover:text-white transition-colors"><i class="fas fa-undo-alt w-4 mr-2 text-center"></i>Refund & Exchange Policy</a></li>
+                        <li><a href="#" class="policy-link hover:text-white transition-colors"><i class="fas fa-file-contract w-4 mr-2 text-center"></i>Terms & Conditions</a></li>
+                        <li><a href="#" class="policy-link hover:text-white transition-colors"><i class="fas fa-user-shield w-4 mr-2 text-center"></i>Privacy Policy</a></li>
+                        <li><a href="#" class="policy-link hover:text-white transition-colors"><i class="fas fa-ban w-4 mr-2 text-center"></i>Order & Cancellation Policy</a></li>
+                        <li><a href="#" class="policy-link hover:text-white transition-colors"><i class="fas fa-scroll w-4 mr-2 text-center"></i>EULA</a></li>
+                        <li><a href="#" class="policy-link hover:text-white transition-colors"><i class="fas fa-trademark w-4 mr-2 text-center"></i>Trademark</a></li>
                     </ul>
-                </div>
+                </nav>
             </div>
-
-            </div>
-
+        </div>
 
     </main>
 
-    <footer class="text-center text-gray-500 text-sm mt-8 py-4 border-t border-gray-700">
-        &copy; 2023 FANFLIX. All rights reserved. </footer>
+    <footer class="text-center text-gray-500 text-sm mt-12 py-6 border-t border-gray-700">
+        &copy; 2023-2024 FANFLIX BD. All rights reserved. Website developed with care.
+    </footer>
 
-    <script>
-        // --- Global Product Data (Placeholder) ---
-        // In a real application, this would be fetched from Firebase
-        let allProducts = []; // Array to hold all products
-
-        // --- JavaScript for Side Menu Functionality ---
-        document.addEventListener('DOMContentLoaded', () => {
-            const menuIcon = document.getElementById('menu-icon');
-            const sideMenu = document.getElementById('side-menu');
-            const closeIcon = sideMenu.querySelector('.fa-times'); // Assuming close icon is within the menu
-            const overlay = document.getElementById('menu-overlay');
-            const menuLinks = sideMenu.querySelectorAll('.menu-links a'); // Get all menu links
-
-            // Function to open the menu
-            function openMenu() {
-                sideMenu.classList.add('open');
-                overlay.classList.add('visible');
-                document.body.style.overflowY = 'hidden'; // Prevent body scroll
-            }
-
-            // Function to close the menu
-            function closeMenu() {
-                sideMenu.classList.remove('open');
-                overlay.classList.remove('visible');
-                 document.body.style.overflowY = 'auto'; // Restore body scroll
-            }
-
-            // Event listener for the menu icon click
-            if (menuIcon) {
-                menuIcon.addEventListener('click', openMenu);
-            }
-
-            // Event listener for the close icon click
-            if (closeIcon) {
-                closeIcon.addEventListener('click', closeMenu);
-            }
-
-            // Event listener for clicking outside the menu (on the overlay)
-            if (overlay) {
-                overlay.addEventListener('click', closeMenu);
-            }
-
-            // Event listeners for menu links
-            menuLinks.forEach(link => {
-                link.addEventListener('click', (event) => {
-                    event.preventDefault(); // Prevent default link behavior
-                    const view = link.dataset.view; // Get the data-view attribute
-                    if (view) {
-                        showView(view); // Show the selected view
-                        closeMenu(); // Close the menu after selecting a view
-                    }
-                });
-            });
-
-
-            // --- JavaScript for Dynamic Product Loading and View Switching ---
-
-            const allProductsView = document.getElementById('all-products-view');
-            const categorizedProductsView = document.getElementById('categorized-products-view');
-            const allProductsContainer = document.getElementById('all-products-container');
-            const streamingPlatformsSection = document.getElementById('streaming-services-section'); // Get category sections
-            const educationalServicesSection = document.getElementById('educational-tools-section');
-            const appleServicesSection = document.getElementById('apple-services-section');
-
-            const streamingPlatformsContainer = document.getElementById('streaming-platforms-container');
-            const educationalServicesContainer = document.getElementById('educational-services-container');
-            const appleServicesContainer = document.getElementById('apple-services-container');
-            const breadcrumbs = document.getElementById('breadcrumbs');
-
-
-            // Function to create the HTML for a single product card based on product data
-            function createProductCardHTML(product) {
-                // Basic structure for a product card - uses generic placeholders if data is missing
-                let cardHTML = `
-                    <div class="product-card ${product.isSoldOut ? 'relative' : ''}">
-                        <img src="${product.imageUrl || 'https://placehold.co/600x300/1a1a1a/ffffff?text=Product+Image'}" alt="${product.name || 'Product Image'}" class="product-image"> ${product.isSoldOut ? '<div class="sold-out-overlay">Sold out</div>' : ''}
-                        <div class="product-info"> <div>
-                                <h2 class="product-name">${product.name || 'Product Name'}</h2> ${product.description ? `<p class="product-description">${product.description}</p>` : '<p class="product-description">Product Description</p>'} ${product.rating !== undefined ? `
-                                    <div class="rating">
-                                        ${generateStarRatingHTML(product.rating)}
-                                        ${product.ratingCount !== undefined ? `<span class="rating-count">(${product.ratingCount})</span>` : ''} </div>
-                                ` : '<div class="rating"><i class="fas fa-star-o"></i><i class="fas fa-star-o"></i><i class="fas fa-star-o"></i><i class="fas fa-star-o"></i><i class="fas fa-star-o"></i></div>'} ${product.details ? `<p class="text-sm text-gray-400 mb-4">${product.details}</p>` : ''}
-                            </div>
-                            <div>
-                                <p class="product-price">${product.price || 'Contact for Price'}</p> ${product.durationOptions && product.durationOptions.length > 0 ? `
-                                    <div class="duration-options"> <h3>Duration</h3>
-                                        <div class="flex space-x-4">
-                                            ${product.durationOptions.map((option, index) => `
-                                                <div class="duration-option ${index === 0 ? 'active' : ''}" data-duration="${option}">${option}</div>
-                                            `).join('')}
-                                        </div>
-                                    </div>
-                                ` : ''}
-
-                                 ${product.showQuantity ? `
-                                    <div class="mb-6">
-                                         <h3>Quantity</h3>
-                                         <div class="quantity-selector"> <div class="quantity-button">-</div> <input type="text" value="1" class="quantity-input" readonly> <div class="quantity-button">+</div> </div>
-                                    </div>
-                                 ` : ''}
-
-                                <div class="action-buttons"> ${product.whatsappLink ? `
-                                        <button class="action-button btn-green ${product.isSoldOut ? 'opacity-50 cursor-not-allowed' : ''}" ${product.isSoldOut ? 'disabled' : ''}>
-                                           Order On WhatsApp
-                                        </button>
-                                    ` : ''}
-                                    ${product.addToCartLink ? `
-                                        <button class="action-button btn-blue ${product.isSoldOut ? 'opacity-50 cursor-not-allowed' : ''}" ${product.isSoldOut ? 'disabled' : ''}>
-                                            Add to cart
-                                        </button>
-                                    ` : ''}
-                                    ${!product.whatsappLink && !product.addToCartLink && !product.isSoldOut ? `
-                                         <button class="action-button btn-blue"> Choose options
-                                         </button>
-                                    ` : ''}
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                `;
-                return cardHTML;
-            }
-
-            // Helper function to generate star rating HTML
-            function generateStarRatingHTML(rating) {
-                let stars = '';
-                for (let i = 0; i < 5; i++) {
-                    if (i < rating) {
-                        stars += '<i class="fas fa-star"></i>';
-                    } else {
-                        stars += '<i class="fas fa-star-o"></i>';
-                    }
-                }
-                return stars;
-            }
-
-            // Function to render products into a specific container
-            function renderProducts(containerElement, products) {
-                if (!containerElement) {
-                    console.error('Container element not found.');
-                    return;
-                }
-                containerElement.innerHTML = ''; // Clear existing content
-
-                if (products && products.length > 0) {
-                     products.forEach(product => {
-                        const cardHTML = createProductCardHTML(product);
-                        containerElement.innerHTML += cardHTML; // Append the card HTML
-                    });
-                     // After rendering, attach event listeners to the new elements
-                    attachEventListeners();
-                } else {
-                     // Optional: Display a message if no products are found
-                     containerElement.innerHTML = '<p class="text-center text-gray-500 col-span-full">No products available in this category.</p>';
-                }
-            }
-
-            // Function to attach event listeners (like quantity and duration) to dynamically created elements
-            function attachEventListeners() {
-                 // Add basic functionality for quantity selector
-                document.querySelectorAll('.quantity-selector').forEach(selector => {
-                     // Prevent adding listeners multiple times if renderProducts is called again
-                    if (selector.dataset.listenersAttached) return;
-
-                    const minusButton = selector.querySelector('.quantity-button:first-child');
-                    const plusButton = selector.querySelector('.quantity-button:last-child');
-                    const quantityInput = selector.querySelector('.quantity-input');
-
-                    minusButton.addEventListener('click', () => {
-                        let currentValue = parseInt(quantityInput.value);
-                        if (currentValue > 1) {
-                            quantityInput.value = currentValue - 1;
-                        }
-                    });
-
-                    plusButton.addEventListener('click', () => {
-                        let currentValue = parseInt(quantityInput.value);
-                        quantityInput.value = currentValue + 1;
-                    });
-
-                    selector.dataset.listenersAttached = 'true'; // Mark as attached
-                });
-
-                // Add basic functionality for duration selection
-                document.querySelectorAll('.duration-option').forEach(option => {
-                     // Prevent adding listeners multiple times
-                     if (option.dataset.listenersAttached) return;
-
-                    option.addEventListener('click', () => {
-                        // Find all duration options within the same parent (assuming they are siblings)
-                        const parent = option.parentElement;
-                        if (parent) {
-                             parent.querySelectorAll('.duration-option').forEach(opt => opt.classList.remove('active'));
-                        }
-                        // Add 'active' class to the clicked option
-                        option.classList.add('active');
-                        // You would typically update the price or other details here based on the selected duration
-                        console.log('Selected duration:', option.textContent);
-                    });
-                     option.dataset.listenersAttached = 'true'; // Mark as attached
-                });
-            }
-
-            // Function to show a specific view and hide others
-            function showView(viewName) {
-                // Hide all main view sections
-                document.querySelectorAll('.view-section').forEach(view => {
-                    view.classList.remove('active');
-                });
-
-                // Hide all individual category sections within the categorized view
-                document.querySelectorAll('.category-section').forEach(section => {
-                     section.classList.remove('active');
-                });
-
-
-                // Determine which view/section to show
-                if (viewName === 'all-products') {
-                    allProductsView.classList.add('active');
-                    updateBreadcrumbs('All Products');
-                } else if (viewName === 'home') {
-                     // Show the categorized view and all category sections within it (default home view)
-                    categorizedProductsView.classList.add('active');
-                    document.querySelectorAll('.category-section').forEach(section => {
-                        section.classList.add('active');
-                    });
-                     updateBreadcrumbs('Home');
-                }
-                 else { // This handles specific categories like streaming-services, educational-tools, apple-services
-                    // Show the categorized view and only the specific category section
-                    categorizedProductsView.classList.add('active');
-                    const targetSection = document.getElementById(`${viewName}-section`);
-                    if (targetSection) {
-                        targetSection.classList.add('active');
-                        // Update breadcrumbs with the category name
-                        const categoryTitle = targetSection.querySelector('h2').textContent;
-                        updateBreadcrumbs(categoryTitle);
-                    } else {
-                        console.error('Category section not found:', viewName);
-                        // Fallback to home view or display an error
-                        showView('home'); // Show default view
-                    }
-                }
-            }
-
-            // Function to update breadcrumbs
-            function updateBreadcrumbs(currentViewTitle) {
-                let breadcrumbHTML = '<a href="#" data-view="home" class="text-gray-400 hover:text-white">Home</a>';
-
-                if (currentViewTitle !== 'Home') {
-                     breadcrumbHTML += ` <span class="mx-1">/</span> <span class="text-white">${currentViewTitle}</span>`;
-                }
-                 breadcrumbs.innerHTML = breadcrumbHTML;
-
-                 // Add event listeners to breadcrumb links (if any)
-                 breadcrumbs.querySelectorAll('a').forEach(link => {
-                     link.addEventListener('click', (event) => {
-                         event.preventDefault();
-                         const view = link.dataset.view;
-                         if (view) {
-                             showView(view);
-                         }
-                     });
-                 });
-            }
-
-
-            // --- Data Fetching (Placeholder for Firebase Integration) ---
-
-            // This is where you would integrate Firebase or another data source.
-            // You would fetch your product data here and then call renderProducts
-            // with the fetched data for each category and for the 'all products' view.
-
-            async function fetchProductsFromFirebase() {
-                console.log("Fetching products from Firebase (placeholder)...");
-
-                // IMPORTANT: Replace this entire section with your actual Firebase fetching logic.
-                // This example data is just to show how the rendering function works.
-                // You will need to initialize Firebase and fetch data from your collections.
-
-                const exampleStreamingProducts = [
-                    {
-                        name: "Netflix Subscription",
-                        description: "(Mobile / PC / Laptop)",
-                        imageUrl: "https://placehold.co/600x300/1a1a1a/ffffff?text=Netflix+Mobile/PC", // Updated placeholder color
-                        rating: 4,
-                        ratingCount: 47,
-                        price: "From Tk 249.00 BDT",
-                        addToCartLink: "#", // Placeholder link
-                         category: "streaming-services"
-                    },
-                    {
-                        name: "Netflix Subscription",
-                        description: "(TV Plan + All Device)",
-                         imageUrl: "https://placehold.co/600x300/1a1a1a/ffffff?text=Netflix+TV/All+Device", // Updated placeholder color
-                        rating: 2,
-                        ratingCount: 12,
-                        price: "Tk 449.00 BDT",
-                        addToCartLink: "#", // Placeholder link
-                         category: "streaming-services"
-                    },
-                     {
-                        name: "Netflix+Prime Video Combo",
-                        description: "(Mobile / PC / Laptop)",
-                         imageUrl: "https://placehold.co/600x300/1a1a1a/ffffff?text=Netflix+Prime+Combo", // Updated placeholder color
-                        rating: 5, // Example rating
-                        ratingCount: "Coming Soon", // Example text
-                        price: "Combo Plan",
-                        whatsappLink: "#", // Placeholder link
-                         category: "streaming-services"
-                    },
-                     {
-                        name: "Netflix & Prime Video Combo",
-                        description: "(TV + All Device)",
-                         imageUrl: "https://placehold.co/600x300/1a1a1a/ffffff?text=Netflix+Prime+Combo+TV", // Updated placeholder color
-                        rating: 5, // Example rating
-                        ratingCount: "Coming Soon", // Example text
-                        price: "Combo Plan",
-                        whatsappLink: "#", // Placeholder link
-                         category: "streaming-services"
-                    },
-                     {
-                        name: "Amazon Prime Video",
-                        imageUrl: "https://placehold.co/600x300/1a1a1a/ffffff?text=Prime+Video", // Updated placeholder color
-                        rating: 3,
-                        ratingCount: 6,
-                        price: "From Tk 199.00 BDT",
-                        addToCartLink: "#", // Placeholder link
-                         category: "streaming-services"
-                    },
-                     {
-                        name: "Crunchyroll Subscription in Bangladesh",
-                        imageUrl: "https://placehold.co/600x300/1a1a1a/ffffff?text=Crunchyroll", // Updated placeholder color
-                        rating: 4,
-                        ratingCount: 3,
-                        price: "From Tk 499.00 BDT",
-                        addToCartLink: "#", // Placeholder link
-                         category: "streaming-services"
-                    },
-                     {
-                        name: "Zee5 Subscription",
-                         imageUrl: "https://placehold.co/600x300/1a1a1a/ffffff?text=ZEE5", // Updated placeholder color
-                        price: "B - 016 0454 1255", // Example contact
-                        whatsappLink: "#", // Placeholder link
-                         category: "streaming-services"
-                    },
-                     {
-                        name: "IQIYI VIP",
-                         imageUrl: "https://placehold.co/600x300/1a1a1a/ffffff?text=IQIYI", // Updated placeholder color
-                        price: "07504541255", // Example contact
-                        whatsappLink: "#", // Placeholder link
-                         category: "streaming-services"
-                    },
-                     {
-                        name: "NETFLIX VIP PLAN",
-                        description: "THE VIP EXPERIENCE",
-                         imageUrl: "https://placehold.co/1200x400/1a1a1a/ffffff?text=FANFLIX+VIP+PLAN", // Updated placeholder color
-                        price: "Tk 550.00 BDT",
-                        durationOptions: ["1 Month", "3 Month"],
-                        showQuantity: true,
-                        whatsappLink: "#", // Placeholder link
-                        addToCartLink: "#", // Placeholder link
-                         category: "streaming-services"
-                        // Add VIP specific features if needed, e.g., features: ["NO HOUSE-HOLD ISSUE", ...]
-                    }
-                    // Add more streaming products here
-                ];
-
-                 const exampleEducationalProducts = [
-                     {
-                        name: "ChatGPT Plus Subscription",
-                         imageUrl: "https://placehold.co/600x300/1a1a1a/ffffff?text=ChatGPT+Plus", // Updated placeholder color
-                        rating: 3,
-                        ratingCount: 4,
-                        price: "Tk 399.00 BDT",
-                        addToCartLink: "#", // Placeholder link
-                         category: "educational-tools"
-                    },
-                     {
-                        name: "Google One Subscription",
-                        description: "STORAGE UPGRADE",
-                         imageUrl: "https://placehold.co/600x300/1a1a1a/ffffff?text=Google+One", // Updated placeholder color
-                        rating: 5,
-                        ratingCount: 2,
-                        details: "100GB 200GB 2TB More", // Example details
-                        price: "From Tk 1,499.00 BDT",
-                        addToCartLink: "#", // Placeholder link
-                         category: "educational-tools"
-                    },
-                     {
-                        name: "Surfshark VPN",
-                         imageUrl: "https://placehold.co/600x300/1a1a1a/ffffff?text=Surfshark+VPN", // Updated placeholder color
-                        price: "-016 0454 1255", // Example contact
-                        whatsappLink: "#", // Placeholder link
-                         category: "educational-tools"
-                    },
-                     {
-                        name: "WINDOWS 10/11 ACTIVATION KEY",
-                         imageUrl: "https://placehold.co/600x300/1a1a1a/ffffff?text=Windows+Key", // Updated placeholder color
-                        price: "Contact for Price",
-                        whatsappLink: "#", // Placeholder link
-                         category: "educational-tools"
-                    }
-                    // Add more educational products here
-                 ];
-
-                 const exampleAppleProducts = [
-                     {
-                        name: "Apple iTunes Gift Card",
-                         imageUrl: "https://placehold.co/600x300/1a1a1a/ffffff?text=iTunes+Gift+Card", // Updated placeholder color
-                        rating: 4,
-                        ratingCount: 2,
-                        details: "100 150 25 15", // Example denominations
-                        price: "From Tk 640.00 BDT",
-                        addToCartLink: "#", // Placeholder link
-                         category: "apple-services"
-                    },
-                     {
-                        name: "Apple One Subscription",
-                         imageUrl: "https://placehold.co/600x300/1a1a1a/ffffff?text=Apple+One", // Updated placeholder color
-                        rating: 5,
-                        ratingCount: 1,
-                        price: "From Tk 499.00 BDT",
-                        addToCartLink: "#", // Placeholder link
-                         category: "apple-services"
-                    },
-                     {
-                        name: "Apple iCloud Premium",
-                         imageUrl: "https://placehold.co/600x300/1a1a1a/ffffff?text=iCloud+Premium", // Updated placeholder color
-                        details: "iCloud 50GB [3", // Example details
-                        price: "Contact for Price",
-                        whatsappLink: "#", // Placeholder link
-                        isSoldOut: true, // Mark as sold out
-                         category: "apple-services"
-                    }
-                    // Add more Apple products here
-                 ];
-
-                // Combine all products into a single array
-                allProducts = [
-                    ...exampleStreamingProducts,
-                    ...exampleEducationalProducts,
-                    ...exampleAppleProducts
-                ];
-
-
-                // Render the products into their respective containers initially
-                renderProducts(streamingPlatformsContainer, exampleStreamingProducts);
-                renderProducts(educationalServicesContainer, exampleEducationalProducts);
-                renderProducts(appleServicesContainer, exampleAppleProducts);
-
-                // Render all products into the all products container (initially hidden)
-                renderProducts(allProductsContainer, allProducts);
-
-                // Show the default view on load
-                showView('home'); // Start with the home view (all categories)
-            }
-
-            // Call the function to fetch and render products when the page loads
-            // Also call it after the DOM is fully loaded to ensure elements exist
-            window.onload = fetchProductsFromFirebase;
-
-
-        }); // End DOMContentLoaded
-
-
-    </script>
+    <script src="script.js" defer></script>
 
 </body>
 </html>
-
