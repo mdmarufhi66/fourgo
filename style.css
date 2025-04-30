@@ -322,9 +322,13 @@ header {
     color: #ffb400;
 }
 
-.rating .fa-star-o {
+.rating .fa-star-o { /* This class might not be used if you're using FontAwesome 6 far fa-star */
     color: #555555;
 }
+.rating .far.fa-star { /* Use this for empty stars in FontAwesome 6 */
+     color: #555555;
+}
+
 
 .rating-count {
     font-size: 0.8rem;
@@ -411,18 +415,18 @@ header {
 }
 
 
-.duration-options { /* Reusing this class for modal options */
+.duration-options {
     margin-bottom: 1rem;
 }
 
-.duration-options h3 { /* Reusing this class for modal option titles */
+.duration-options h3 {
     font-size: 0.9rem;
     font-weight: 600;
     margin-bottom: 0.5rem;
     color: #b3b3b3;
 }
 
-.duration-option { /* Reusing this class for modal option buttons */
+.duration-option {
     padding: 0.5rem 1rem;
     border: 1px solid #555555;
     border-radius: 0.25rem;
@@ -439,7 +443,7 @@ header {
  }
 
 
-.quantity-selector { /* Reusing this class for modal quantity selector */
+.quantity-selector {
     display: flex;
     align-items: center;
     border: 1px solid #555555;
@@ -449,14 +453,15 @@ header {
     margin-bottom: 1rem;
 }
 
- .quantity-selector h3 { /* Reusing this class for modal quantity title */
+ /* Style the container for the quantity selector */
+ .quantity-selector-container h3 {
     font-size: 0.9rem;
     font-weight: 600;
     margin-bottom: 0.5rem;
     color: #b3b3b3;
  }
 
-.quantity-button { /* Reusing this class for modal quantity buttons */
+.quantity-button {
     padding: 0.5rem 0.75rem;
     background-color: #555555;
     cursor: pointer;
@@ -470,7 +475,7 @@ header {
 .quantity-button:hover {
      background-color: #666666;
 }
-.quantity-input { /* Reusing this class for modal quantity input */
+.quantity-input {
     flex-grow: 1;
     text-align: center;
     padding: 0.5rem 0;
@@ -614,7 +619,7 @@ header {
     display: block;
  }
 
- /* Modal Styles (for Login and Product Options) */
+ /* Login Modal Styles */
 .modal-overlay {
     position: fixed;
     top: 0;
@@ -626,13 +631,12 @@ header {
     display: none; /* Hidden by default */
     justify-content: center;
     align-items: center;
-    overflow-y: auto; /* Allow modal content to scroll if needed */
 }
 .modal-overlay.visible {
     display: flex; /* Use flex to center content */
 }
 
-.login-modal { /* Basic modal styling - reused for options modal */
+.login-modal {
     background-color: #1e1e1e; /* Slightly lighter than body */
     padding: 2rem;
     border-radius: 0.5rem;
@@ -641,14 +645,7 @@ header {
     max-width: 400px; /* Max width for the modal */
     position: relative; /* For close button positioning */
     color: #ffffff;
-    max-height: 90vh; /* Limit height and enable internal scroll if needed */
-    overflow-y: auto; /* Allow modal content to scroll internally */
 }
-
-#product-options-modal {
-    /* Specific styles for the options modal if needed, overrides login-modal */
-}
-
 
 .modal-close-icon {
     position: absolute;
@@ -669,12 +666,6 @@ header {
     margin-bottom: 1.5rem;
     text-align: center;
 }
-
-#product-options-modal h2 { /* Style for product name in options modal */
-    font-size: 1.5rem; /* Slightly smaller than main modal title */
-    margin-bottom: 1rem;
-}
-
 
 .login-modal label {
     display: block;
@@ -700,7 +691,7 @@ header {
     border-color: #007bff; /* Highlight on focus */
 }
 
-.login-modal button { /* Basic button styles - reused */
+.login-modal button {
     width: 100%;
     padding: 0.8rem;
     font-size: 1.1rem;
@@ -773,7 +764,13 @@ header {
      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
      border: 1px solid #333333;
      margin-bottom: 2rem; /* Space after the section */
+     display: none; /* Hidden by default, shown by JS */
  }
+
+ #featured-product-section.active {
+     display: block; /* Show when active */
+ }
+
 
  #featured-product-section .featured-image {
      width: 100%;
@@ -838,3 +835,16 @@ header {
       color: #ffffff;
       font-weight: 600;
   }
+
+/* Footer Policy Links */
+.policy-link {
+    color: #b3b3b3;
+    text-decoration: none;
+    font-size: 0.9rem; /* Slightly smaller */
+    display: flex;
+    align-items: center;
+}
+
+.policy-link i {
+    text-align: center; /* Ensure icon is centered in its space */
+}
