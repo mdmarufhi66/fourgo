@@ -122,10 +122,10 @@ function setupEventListeners() {
         }
     });
 
-    // Product Card Interactions (delegated) - Still needed for regular product cards
+    // Product Card Interactions (delegated)
     const productContainers = [
         allProductsContainer, streamingPlatformsContainer, educationalServicesContainer,
-        appleServicesContainer, bestSellingProductsContainer
+        appleServicesContainer, bestSellingProductsContainer, featuredProductSection // Add featured section
     ];
     productContainers.forEach(container => {
         container?.addEventListener('click', handleProductCardInteraction);
@@ -151,8 +151,8 @@ function setupEventListeners() {
          }
      });
 
-     // Event Listener for Featured Product Buy Now Button
-     document.getElementById('featured-buy-now')?.addEventListener('click', handleFeaturedBuyNow);
+     // Event Listener for Featured Product Buy Now Button - REMOVED, handled by delegated product card handler
+        // document.getElementById('featured-buy-now')?.addEventListener('click', handleFeaturedBuyNow); // No longer needed with delegated handler
 }
 
 // --- Firebase Authentication ---
@@ -331,15 +331,18 @@ async function fetchAndRenderData() {
              {
                 id: 'netflix-standard-1month',
                 name: 'Netflix Standard',
-                description: '1 Month Shared Account',
+                description: 'Shared Account',
                 imageUrl: 'https://via.placeholder.com/300x180/E50914/FFFFFF?text=Netflix',
-                price: 500, // Example price
+                price: 500, // Base price
                 rating: 4.5,
                 ratingCount: 120,
                 category: 'streaming-services',
                 isBestSeller: true,
                 isSoldOut: false,
-                durationOptions: ['1 Month', '3 Months'],
+                durationOptions: [ // These options now only control the "Choose Options" button logic
+                    { duration: '1 Month', price: 500 },
+                    { duration: '3 Months', price: 1400 } // Example: slightly discounted
+                ],
                 showQuantity: false,
                 addToCartLink: true, // Indicates this product can be added to cart
                 details: 'Works on TV, Mobile, Laptop'
@@ -347,7 +350,7 @@ async function fetchAndRenderData() {
               {
                 id: 'youtube-premium-individual-1month',
                 name: 'YouTube Premium Individual',
-                description: '1 Month Plan',
+                description: 'Monthly Plan',
                 imageUrl: 'https://via.placeholder.com/300x180/FF0000/FFFFFF?text=YouTube+Premium',
                 price: 250,
                 rating: 4.8,
@@ -355,103 +358,120 @@ async function fetchAndRenderData() {
                 category: 'streaming-services',
                 isBestSeller: true,
                 isSoldOut: false,
-                durationOptions: ['1 Month', '6 Months'],
+                durationOptions: [
+                     { duration: '1 Month', price: 250 },
+                     { duration: '6 Months', price: 1400 }
+                 ],
                  showQuantity: false,
                 addToCartLink: true,
                  details: 'Ad-free videos, Offline playback'
              },
               {
-                id: 'spotify-premium-individual-1month',
+                id: 'spotify-premium-individual',
                 name: 'Spotify Premium Individual',
-                description: '1 Month Subscription',
+                description: 'Subscription',
                 imageUrl: 'https://via.placeholder.com/300x180/1DB954/FFFFFF?text=Spotify',
-                price: 150,
+                price: 150, // Base price
                 rating: 4.7,
                 ratingCount: 90,
                 category: 'streaming-services',
                 isBestSeller: false,
                 isSoldOut: false,
-                durationOptions: ['1 Month', '3 Months', '6 Months'],
+                durationOptions: [
+                     { duration: '1 Month', price: 150 },
+                     { duration: '3 Months', price: 400 },
+                     { duration: '6 Months', price: 750 }
+                 ],
                   showQuantity: false,
                  addToCartLink: true,
                  details: 'Listen offline, Ad-free music'
              },
              {
-                id: 'chatgpt-plus-1month',
+                id: 'chatgpt-plus',
                 name: 'ChatGPT Plus',
-                description: '1 Month Access',
+                description: 'Access Subscription',
                 imageUrl: 'https://via.placeholder.co/300x180/424242/FFFFFF?text=ChatGPT+Plus',
-                price: 1800,
+                price: 1800, // Base price
                 rating: 4.9,
                 ratingCount: 50,
                 category: 'educational-tools',
                 isBestSeller: true,
                 isSoldOut: false,
-                durationOptions: ['1 Month'],
+                durationOptions: [
+                    { duration: '1 Month', price: 1800 }
+                 ],
                  showQuantity: false,
                 addToCartLink: true,
                  details: 'Priority access, Faster responses'
              },
               {
-                id: 'grammarly-premium-1year',
+                id: 'grammarly-premium',
                 name: 'Grammarly Premium',
-                description: '1 Year Subscription',
+                description: 'Subscription',
                 imageUrl: 'https://via.placeholder.co/300x180/1C7C54/FFFFFF?text=Grammarly',
-                price: 3500,
+                price: 3500, // Base price
                 rating: 4.6,
                 ratingCount: 30,
                 category: 'educational-tools',
                 isBestSeller: false,
                 isSoldOut: false,
-                durationOptions: ['1 Year'],
+                durationOptions: [
+                    { duration: '1 Year', price: 3500 }
+                 ],
                   showQuantity: false,
                 addToCartLink: true,
                  details: 'Advanced grammar checks, Plagiarism detector'
              },
              {
-                id: 'apple-music-individual-1month',
+                id: 'apple-music-individual',
                 name: 'Apple Music Individual',
-                description: '1 Month Subscription',
+                description: 'Subscription',
                 imageUrl: 'https://via.placeholder.co/300x180/FA203D/FFFFFF?text=Apple+Music',
-                price: 200,
+                price: 200, // Base price
                 rating: 4.3,
                 ratingCount: 70,
                 category: 'apple-services',
                 isBestSeller: false,
                 isSoldOut: false,
-                durationOptions: ['1 Month', '3 Months', '1 Year'],
+                durationOptions: [
+                    { duration: '1 Month', price: 200 },
+                    { duration: '3 Months', price: 550 },
+                    { duration: '1 Year', price: 2000 }
+                 ],
                  showQuantity: false,
                 addToCartLink: true,
                  details: 'Millions of songs, Ad-free listening'
              },
              {
-                id: 'apple-tv-plus-1month',
+                id: 'apple-tv-plus',
                 name: 'Apple TV+',
-                description: '1 Month Subscription',
+                description: 'Subscription',
                 imageUrl: 'https://via.placeholder.co/300x180/1A1A1A/999999?text=Apple+TV%2B',
-                price: 180,
+                price: 180, // Base price
                 rating: 4.4,
                 ratingCount: 45,
                 category: 'apple-services',
                 isBestSeller: false,
                 isSoldOut: false,
-                durationOptions: ['1 Month'],
+                durationOptions: [
+                    { duration: '1 Month', price: 180 }
+                 ],
                  showQuantity: false,
                 addToCartLink: true,
                  details: 'Original shows and movies'
              },
               {
-                id: 'product-with-quantity',
+                id: 'software-license',
                 name: 'Software License',
                 description: 'Single User License',
                 imageUrl: 'https://via.placeholder.co/300x180/4A5568/FFFFFF?text=Software',
-                price: 1000,
+                price: 1000, // Base price
                 rating: null,
                 ratingCount: '',
                 category: 'educational-tools',
                 isBestSeller: false,
                 isSoldOut: false,
-                durationOptions: [],
+                durationOptions: [], // No duration options
                 showQuantity: true, // Enable quantity selector
                 addToCartLink: true,
                  details: 'Perpetual license for one user'
@@ -471,11 +491,31 @@ async function fetchAndRenderData() {
                  showQuantity: false,
                  addToCartLink: false, // Cannot add to cart if sold out
                  details: 'Check back later for availability'
+             },
+              {
+                id: 'simple-product',
+                name: 'Simple E-book',
+                description: 'Downloadable PDF',
+                imageUrl: 'https://via.placeholder.co/300x180/5A67D8/FFFFFF?text=E-book',
+                price: 50, // Fixed price, no options
+                rating: 4.2,
+                ratingCount: 25,
+                category: 'educational-tools',
+                isBestSeller: false,
+                isSoldOut: false,
+                durationOptions: [], // No duration options
+                showQuantity: false, // No quantity selector
+                addToCartLink: true, // Can be added directly to cart
+                 details: 'Instant download'
              }
          ];
 
-         // Select a dummy featured product (e.g., the first best seller)
-         featuredProduct = allProducts.find(p => p.isBestSeller && !p.isSoldOut);
+         // Select a dummy featured product (e.g., the first best seller with options)
+         featuredProduct = allProducts.find(p => p.isBestSeller && !p.isSoldOut && (p.durationOptions.length > 0 || p.showQuantity));
+         if (!featuredProduct) {
+              // Fallback to any best seller if no actionable best seller
+              featuredProduct = allProducts.find(p => p.isBestSeller && !p.isSoldOut);
+         }
          if (featuredProduct) {
              // Add specific featured details if needed, or just use existing product data
              renderFeaturedProduct(featuredProduct);
@@ -578,20 +618,20 @@ function createProductCardHTML(product) {
     const priceFormatted = typeof price === 'number' ? formatPrice(price) : price;
     const isActionable = !isSoldOut;
 
-    // Ensure data-product-id is correctly set on the buttons and quantity input
-    const durationOptionsHTML = durationOptions.length > 0 ? `<div class="duration-options mt-4"><h3 class="text-xs font-semibold mb-2 text-gray-400 uppercase tracking-wider">Duration</h3><div class="flex flex-wrap gap-2">${durationOptions.map((option, index) => `<button class="duration-option text-sm px-3 py-1 border border-gray-600 rounded hover:bg-gray-600 transition-colors ${index === 0 ? 'active bg-gray-600' : ''}" data-duration="${option}" data-product-id="${id}" ${!isActionable ? 'disabled' : ''}>${option}</button>`).join('')}</div></div>` : '';
+    // --- Removed inline duration options and quantity selector HTML ---
+    const durationOptionsHTML = ''; // No longer rendered inline
+    const quantitySelectorHTML = ''; // No longer rendered inline
+    // --- End Removed HTML ---
 
-    const quantitySelectorHTML = showQuantity ? `<div class="quantity-selector-container mt-4"><h3 class="text-xs font-semibold mb-2 text-gray-400 uppercase tracking-wider">Quantity</h3><div class="quantity-selector inline-flex"><button class="quantity-button minus bg-gray-600 hover:bg-gray-500 rounded-l px-3 py-1" data-product-id="${id}" ${!isActionable ? 'disabled' : ''}>-</button><input type="number" value="1" min="1" class="quantity-input w-12 text-center bg-gray-700 border-t border-b border-gray-600" readonly data-product-id="${id}" ${!isActionable ? 'disabled' : ''}><button class="quantity-button plus bg-gray-600 hover:bg-gray-500 rounded-r px-3 py-1" data-product-id="${id}" ${!isActionable ? 'disabled' : ''}>+</button></div></div>` : '';
-
-    // Removed whatsappButtonHTML
 
     // Only show 'Add to Cart' if addToCartLink is present AND there are no duration options or quantity selectors requiring 'Choose Options'
     // Also ensure the product is actionable (not sold out)
-    const showAddToCartButton = addToCartLink && durationOptions.length === 0 && !showQuantity && isActionable;
+    const requiresOptions = durationOptions.length > 0 || showQuantity;
+    const showAddToCartButton = addToCartLink && isActionable && !requiresOptions;
     const addToCartButtonHTML = showAddToCartButton ? `<button class="action-button btn-blue add-to-cart-button" data-product-id="${id}"><i class="fas fa-cart-plus mr-2"></i> Add to cart</button>` : '';
 
-     // Show 'Choose Options' if there are duration options or quantity selectors AND the product is actionable
-    const showChooseOptionsButton = isActionable && (durationOptions.length > 0 || showQuantity);
+     // Show 'Choose Options' if the product is actionable AND requires options (duration or quantity)
+    const showChooseOptionsButton = isActionable && requiresOptions;
     const chooseOptionsButtonHTML = showChooseOptionsButton ? `<button class="action-button btn-blue choose-options-button" data-product-id="${id}">Choose options</button>` : '';
 
     // Determine which button(s) to show
@@ -606,7 +646,7 @@ function createProductCardHTML(product) {
 
 
     // Ensure data-product-id is on the main product-card div
-    return `<article class="product-card flex flex-col h-full ${isSoldOut ? 'relative' : ''}" aria-label="${name}" data-product-id="${id}">${isSoldOut ? '<div class="sold-out-overlay" aria-hidden="true">Sold out</div>' : ''}<img src="${imageUrl}" alt="${name}" class="product-image" onerror="this.onerror=null;this.src='https://placehold.co/300x180/1a1a1a/ffffff?text=Image+Error';"><div class="product-info flex flex-col flex-grow p-4"><div class="flex-grow"><h3 class="product-name font-semibold text-lg mb-1">${name}</h3>${description ? `<p class="product-description text-sm text-gray-400 mb-2">${description}</p>` : ''}${rating !== null ? `<div class="rating text-sm mb-2" role="img" aria-label="Rating: ${rating} out of 5 stars">${generateStarRatingHTML(rating)}${ratingCount !== '' ? `<span class="rating-count text-gray-500 ml-1">(${ratingCount})</span>` : ''}</div>` : ''}${details ? `<p class="text-xs text-gray-500 mb-3">${details}</p>` : ''}</div><div><p class="product-price text-xl font-bold mb-3">${priceFormatted}</p>${durationOptionsHTML}${quantitySelectorHTML}<div class="action-buttons mt-4 space-y-2">${actionButtonsHTML}</div></div></div></article>`;
+    return `<article class="product-card flex flex-col h-full ${isSoldOut ? 'relative' : ''}" aria-label="${name}" data-product-id="${id}">${isSoldOut ? '<div class="sold-out-overlay" aria-hidden="true">Sold out</div>' : ''}<img src="${imageUrl}" alt="${name}" class="product-image" onerror="this.onerror=null;this.src='https://placehold.co/300x180/1a1a1a/ffffff?text=Image+Error';"><div class="product-info flex flex-col flex-grow p-4"><div class="flex-grow"><h3 class="product-name font-semibold text-lg mb-1">${name}</h3>${description ? `<p class="product-description text-sm text-gray-400 mb-2">${description}</p>` : ''}${rating !== null ? `<div class="rating text-sm mb-2" role="img" aria-label="Rating: ${rating} out of 5 stars">${generateStarRatingHTML(rating)}${ratingCount !== '' ? `<span class="rating-count text-gray-500 ml-1">(${ratingCount})</span>` : ''}</div>` : ''}${details ? `<p class="text-xs text-gray-500 mb-3">${details}</p>` : ''}</div><div><p class="product-price text-xl font-bold mb-3">${priceFormatted}</p><div class="action-buttons mt-4 space-y-2">${actionButtonsHTML}</div></div></div></article>`;
 }
 function generateStarRatingHTML(rating) { let stars = ''; const fullStars = Math.floor(rating); const halfStar = rating % 1 >= 0.5; const emptyStars = 5 - fullStars - (halfStar ? 1 : 0); for (let i = 0; i < fullStars; i++) stars += '<i class="fas fa-star text-yellow-400" aria-hidden="true"></i>'; if (halfStar) stars += '<i class="fas fa-star-half-alt text-yellow-400" aria-hidden="true"></i>'; for (let i = 0; i < emptyStars; i++) stars += '<i class="far fa-star text-gray-500" aria-hidden="true"></i>'; return stars; }
 function renderBanner(images) { if (!bannerSlidesContainer || !bannerIndicatorsContainer || !images || images.length === 0) return; bannerSlidesContainer.innerHTML = ''; bannerIndicatorsContainer.innerHTML = ''; const fragmentSlides = document.createDocumentFragment(); const fragmentIndicators = document.createDocumentFragment(); images.forEach((imageUrl, index) => { const slide = document.createElement('div'); slide.classList.add('banner-slide'); const img = document.createElement('img'); img.src = imageUrl; img.alt = `Banner Image ${index + 1}`; img.classList.add('w-full', 'h-auto', 'object-cover'); img.onerror = () => { img.alt = 'Banner Image Failed to Load'; img.src = `https://placehold.co/1200x400/1a1a1a/ffffff?text=Error+Loading+Banner+${index + 1}`; }; slide.appendChild(img); fragmentSlides.appendChild(slide); const dot = document.createElement('button'); dot.classList.add('indicator-dot', 'w-3', 'h-3', 'rounded-full', 'bg-white', 'opacity-50', 'hover:opacity-75', 'transition-opacity'); dot.setAttribute('aria-label', `Go to slide ${index + 1}`); if (index === 0) dot.classList.add('active', 'opacity-100'); dot.addEventListener('click', () => { goToSlide(index); resetSlideInterval(); }); fragmentIndicators.appendChild(dot); }); bannerSlidesContainer.appendChild(fragmentSlides); bannerIndicatorsContainer.appendChild(fragmentIndicators); currentSlideIndex = 0; goToSlide(0); startSlideShow(); }
@@ -638,8 +678,8 @@ function showView(viewName) {
     document.querySelectorAll('.view-section').forEach(view => view.classList.remove('active'));
     categorizedProductsView?.querySelectorAll('.category-section').forEach(section => section.classList.remove('active'));
     bestSellersSection?.classList.remove('active');
-    // Keep featured section visible on home view if data is loaded
-    if (viewName === 'home' && featuredProduct) {
+    // Keep featured section visible on home view if data is loaded and not searching
+    if (viewName === 'home' && featuredProduct && !document.getElementById('search-bar-container')?.classList.contains('active')) {
          featuredProductSection?.classList.add('active');
     } else {
          featuredProductSection?.classList.remove('active');
@@ -655,7 +695,13 @@ function showView(viewName) {
         allProductsView?.classList.add('active');
         currentViewTitle = 'All Products';
          // Ensure all products are rendered in this view's container
-         renderProducts(allProductsContainer, allProducts);
+         // Only re-render if the search bar is empty, otherwise search handles rendering
+         if (!document.getElementById('search-bar-container')?.classList.contains('active') || searchInput?.value.trim() === '') {
+             renderProducts(allProductsContainer, allProducts);
+         } else {
+              // If search is active, leave the search results rendered
+         }
+
     } else if (viewName === 'home') {
         categorizedProductsView?.classList.add('active');
         bestSellersSection?.classList.add('active');
@@ -698,6 +744,8 @@ function handleSearchInput() {
 
     // Always show the all-products view when searching
     showView('all-products'); // This will set the breadcrumbs and activate the all-products-view section
+     // Hide featured section when searching
+     if (featuredProductSection) featuredProductSection.classList.remove('active');
 
     if (isSearching) {
          renderProducts(allProductsContainer, filtered); // Render filtered results in the all products container
@@ -718,30 +766,54 @@ function startSlideShow() { clearInterval(slideInterval); const numSlides = bann
 function resetSlideInterval() { clearInterval(slideInterval); startSlideShow(); }
 
 // --- Cart Logic ---
-function addItemToCart(product, quantity = 1, selectedDuration = null) {
-     // Find the full product object from the allProducts array
+function addItemToCart(product, quantity = 1, selectedDuration = null, selectedPrice = product.price) {
+     // Find the full product object from the allProducts array (important for latest data)
      const fullProduct = allProducts.find(p => p.id === product.id);
      if (!fullProduct || fullProduct.isSoldOut) {
          console.warn("Attempted to add invalid or sold out product:", product);
          return;
      }
 
-     const cartItemId = selectedDuration ? `${fullProduct.id}-${selectedDuration}` : fullProduct.id;
+     // Determine the price based on selected duration if applicable, otherwise use base price
+     let priceToUse = fullProduct.price; // Default to base price from data
+     if (selectedDuration && fullProduct.durationOptions && fullProduct.durationOptions.length > 0) {
+         const selectedOption = fullProduct.durationOptions.find(option => option.duration === selectedDuration);
+         if (selectedOption) {
+             priceToUse = selectedOption.price;
+         } else {
+             console.warn(`Selected duration "${selectedDuration}" not found for product ${fullProduct.id}. Using base price.`);
+         }
+     } else if (selectedPrice !== undefined && selectedPrice !== null) {
+         // Fallback to explicitly passed selectedPrice if no duration is selected/found
+         priceToUse = selectedPrice;
+     }
+      // Ensure priceToUse is a number
+      priceToUse = typeof priceToUse === 'number' ? priceToUse : parseFloat(String(priceToUse).replace(/[^\d.-]/g, '')) || 0;
+
+
+     // Generate a unique cart item ID based on product ID and selected options (duration/price)
+     // This ensures different durations of the same product are treated as separate line items
+     let cartItemId = fullProduct.id;
+     if (selectedDuration) {
+         cartItemId += `-${selectedDuration.replace(/\s+/g, '-')}`; // Append duration, sanitize spaces
+     } else if (fullProduct.showQuantity) {
+          // If only quantity matters, the base ID is enough unless other options are added later
+     }
+
+
      const existingItemIndex = cartItems.findIndex(item => item.cartItemId === cartItemId);
 
      if (existingItemIndex > -1) {
          cartItems[existingItemIndex].quantity += quantity;
      } else {
-         // Use the price from the full product object
-         const price = typeof fullProduct.price === 'number' ? fullProduct.price : parseFloat(String(fullProduct.price).replace(/[^\d.-]/g, '')) || 0;
          cartItems.push({
-             cartItemId,
+             cartItemId, // Use the generated unique ID
              id: fullProduct.id,
              name: fullProduct.name,
-             price, // Use the price from the fetched product data
+             price: priceToUse, // Use the determined price
              quantity,
              imageUrl: fullProduct.imageUrl,
-             selectedDuration
+             selectedDuration // Store selected duration
          });
      }
      console.log("Cart updated:", cartItems);
@@ -754,19 +826,16 @@ function removeItemFromCart(cartItemIdToRemove) { cartItems = cartItems.filter(i
 // --- Event Handling for Product Cards (Delegated) ---
 function handleProductCardInteraction(event) {
     const button = event.target.closest('button');
+    // If the click wasn't on a button, exit
     if (!button) return;
 
     // Find the closest product card element using the data-product-id attribute
     const productCard = event.target.closest('.product-card');
+    // If the click was on a button, but not inside a product card (e.g., banner nav), exit
     if (!productCard) return;
 
     // Get the product ID from the data-product-id attribute on the card
     const productId = productCard.dataset.productId;
-
-    if (!productId) {
-         console.warn("Could not find product ID for interaction:", event.target);
-         return; // Exit if no product ID is found
-    }
 
     // Find the product data in the global allProducts array using the productId
     const product = allProducts.find(p => p.id === productId);
@@ -775,47 +844,30 @@ function handleProductCardInteraction(event) {
         return; // Exit if product data isn't found
     }
 
+    // --- Removed handling for inline quantity buttons and duration options ---
+    // if (button.classList.contains('quantity-button')) { ... }
+    // else if (button.classList.contains('duration-option')) { ... }
+    // --- End Removed handling ---
 
-    if (button.classList.contains('quantity-button')) {
-        const quantityInput = productCard.querySelector(`.quantity-input[data-product-id="${productId}"]`);
-        if (!quantityInput) return;
-        let currentValue = parseInt(quantityInput.value);
-        if (button.classList.contains('plus')) quantityInput.value = currentValue + 1;
-        else if (button.classList.contains('minus') && currentValue > 1) quantityInput.value = currentValue - 1;
-    } else if (button.classList.contains('duration-option')) {
-        const duration = button.dataset.duration;
-        const durationContainer = button.closest('.duration-options');
-        durationContainer?.querySelectorAll('.duration-option').forEach(opt => opt.classList.remove('active', 'bg-gray-600'));
-        button.classList.add('active', 'bg-gray-600');
-        console.log(`Selected duration: ${duration} for product ${productId}`);
-    } else if (button.classList.contains('add-to-cart-button')) {
-        let quantity = 1;
-        const quantityInput = productCard.querySelector(`.quantity-input[data-product-id="${productId}"]`);
-        if (quantityInput) quantity = parseInt(quantityInput.value);
-        let selectedDuration = null;
-        const activeDurationButton = productCard.querySelector('.duration-option.active');
-        if (activeDurationButton) selectedDuration = activeDurationButton.dataset.duration;
-        addItemToCart(product, quantity, selectedDuration); // Pass the product object
+
+    if (button.classList.contains('add-to-cart-button')) {
+        // This button is only shown for products *without* inline options
+        // Default quantity is 1, no duration is selected
+        addItemToCart(product, 1, null, product.price); // Pass the product object and default options
     } else if (button.classList.contains('choose-options-button')) {
         console.log(`Choose options clicked for product ${productId}`);
-        // Implement logic to show a modal or expand options for the user to choose duration/quantity
-        alert(`Please select options for ${product.name}`); // Placeholder for now
+        // *** Placeholder for your future modal/popup logic ***
+        // When you implement the modal, this is where you'll show it,
+        // allow the user to select duration/quantity, and then call `addItemToCart`
+        // with the selected options and corresponding price.
+        alert(`Please select options for ${product.name}. Options available: Durations: ${product.durationOptions?.map(o => o.duration).join(', ')}, Quantity Selectable: ${product.showQuantity}`); // Placeholder for now
     }
     // Removed the 'whatsapp-button' handling logic for general product cards
 }
 
 // --- Featured Product Button Handlers ---
-function handleFeaturedBuyNow() {
-     console.log("Featured 'Buy Now' clicked");
-     // Use the fetched featuredProduct data if available
-     if (featuredProduct) {
-         // Add the featured product to the cart
-         addItemToCart(featuredProduct, 1); // Assuming quantity 1 for featured product
-     } else {
-         console.warn("Featured product data not available to add to cart.");
-         alert("Featured product details are not available."); // Provide user feedback
-     }
-}
+// This function is now handled by the delegated product card interaction
+// function handleFeaturedBuyNow() { ... } // No longer needed
 
 // Function to render the featured product details
 function renderFeaturedProduct(product) {
@@ -830,20 +882,35 @@ function renderFeaturedProduct(product) {
     featuredProductTitle.textContent = product.name || 'Featured Product';
     featuredProductDescription.textContent = product.description || '';
 
+    // Update the "Buy Now" button's data-product-id and class
+     const buyNowButton = featuredProductSection.querySelector('#featured-buy-now');
+     if (buyNowButton) {
+         buyNowButton.setAttribute('data-product-id', product.id);
+         // If the featured product requires options, change the button text/class
+         const requiresOptions = (product.durationOptions?.length > 0 || product.showQuantity);
+         if (requiresOptions) {
+              buyNowButton.textContent = 'Choose options';
+              buyNowButton.classList.remove('add-to-cart-button');
+              buyNowButton.classList.add('choose-options-button');
+         } else {
+             buyNowButton.innerHTML = '<i class="fas fa-cart-plus mr-2"></i> Add to cart'; // Revert to Add to Cart
+             buyNowButton.classList.remove('choose-options-button');
+             buyNowButton.classList.add('add-to-cart-button');
+         }
+         buyNowButton.disabled = product.isSoldOut; // Disable if sold out
+     }
+
+
     // Make the section visible
     featuredProductSection.style.display = 'block';
-    // Ensure it's active if on the home view
-    // This logic might need refinement if the featured section should appear on other views
-    if (document.getElementById('categorized-products-view')?.classList.contains('active')) {
+    // Ensure it's active if on the home view and not searching
+    if (document.getElementById('categorized-products-view')?.classList.contains('active') && !document.getElementById('search-bar-container')?.classList.contains('active')) {
          featuredProductSection.classList.add('active');
-    } else if (document.getElementById('best-sellers-section')?.classList.contains('active')) {
-         // Also show featured on best sellers view, or adjust as needed
+    } else if (document.getElementById('best-sellers-section')?.classList.contains('active') && !document.getElementById('search-bar-container')?.classList.contains('active')) {
+         // Also show featured on best sellers view if not searching
          featuredProductSection.classList.add('active');
-    } else if (document.getElementById('all-products-view')?.classList.contains('active') && !document.getElementById('search-bar-container')?.classList.contains('active')) {
-        // Optionally show on All Products view when not searching
-        featuredProductSection.classList.add('active');
-    } else if (document.getElementById('search-bar-container')?.classList.contains('active')) {
-        // Hide featured section when search bar is active
+    } else {
+        // Hide on All Products view, Search view, or other non-home/non-best-seller views
          featuredProductSection.classList.remove('active');
     }
 
