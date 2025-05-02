@@ -3,19 +3,928 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FANFLIX</title>
+    <title>FANFLIX - Revamped</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;700&display=swap" rel="stylesheet">
 
-    <link rel="stylesheet" href="style.css">
-
+    <!-- Updated: Added Firestore compat SDK -->
     <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore-compat.js"></script>
+    <style>
+        /* New Custom Styles */
+        body {
+            font-family: 'Roboto', sans-serif; /* Changed font */
+            background-color: #1E272E; /* New dark background */
+            color: #EEEEEE; /* Lighter text color */
+            overflow-x: hidden;
+        }
+
+        h1, h2, h3, h4, h5, h6 {
+            font-family: 'Oswald', sans-serif; /* Changed heading font */
+            color: #00ADA5; /* Teal accent for headings */
+        }
+
+        /* Header Styling */
+        header {
+            background-color: #2C3A47; /* Slightly lighter dark */
+            border-bottom: 1px solid #4A6572; /* Subtle border */
+        }
+
+        /* Header Logo Image Styling */
+        .header-logo-img {
+             max-height: 45px; /* Slightly larger logo */
+             width: auto;
+             object-fit: contain;
+        }
+
+        /* Header Icons Styling */
+        .header-icon {
+            font-size: 1.4rem; /* Larger icons */
+            cursor: pointer;
+            transition: color 0.3s ease;
+            color: #EEEEEE; /* Default color */
+        }
+        .header-icon:hover {
+            color: #00ADA5; /* Teal on hover */
+        }
+
+        /* Search Bar Styling */
+        .search-bar-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            background-color: #2C3A47; /* Matches header */
+            padding: 1rem;
+            z-index: 30;
+            display: none;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.5);
+        }
+
+        .search-bar-container.active {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .search-input {
+            flex-grow: 1;
+            padding: 0.75rem 1rem;
+            border: 1px solid #4A6572; /* New border color */
+            border-radius: 0.375rem; /* Rounded corners */
+            background-color: #34495E; /* Input background */
+            color: #EEEEEE;
+            font-size: 1rem;
+            outline: none;
+            transition: border-color 0.3s ease;
+        }
+
+        .search-input:focus {
+             border-color: #00ADA5; /* Teal highlight on focus */
+        }
+
+        .search-input::placeholder {
+            color: #A9A9A9; /* Subtle placeholder */
+        }
+
+        .search-close-icon {
+            font-size: 1.8rem; /* Larger close icon */
+            color: #A9A9A9; /* Subtle color */
+            cursor: pointer;
+            transition: color 0.3s ease;
+        }
+
+        .search-close-icon:hover {
+            color: #EEEEEE; /* White on hover */
+        }
+
+        /* Shopping Cart Styling */
+        .cart-container {
+            position: fixed;
+            top: 0;
+            right: -450px; /* Wider cart */
+            width: 450px;
+            max-width: 100%;
+            height: 100%;
+            background-color: #2C3A47; /* Matches header */
+            color: #EEEEEE;
+            transition: right 0.4s ease-in-out; /* Slower transition */
+            z-index: 25;
+            padding: 2rem; /* More padding */
+            box-shadow: -3px 0 8px rgba(0, 0, 0, 0.6); /* Stronger shadow */
+            display: flex;
+            flex-direction: column;
+        }
+
+        .cart-container.active {
+            right: 0;
+        }
+
+        .cart-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem; /* More space */
+            border-bottom: 1px solid #4A6572;
+            padding-bottom: 1.5rem;
+        }
+
+        .cart-header h2 {
+            font-size: 2rem; /* Larger title */
+            font-weight: 700;
+            color: #00ADA5; /* Teal title */
+        }
+
+        .cart-close-icon {
+            font-size: 1.8rem; /* Larger close icon */
+            color: #A9A9A9;
+            cursor: pointer;
+            transition: color 0.3s ease;
+        }
+         .cart-close-icon:hover {
+             color: #EEEEEE;
+         }
+
+        .cart-items {
+            flex-grow: 1;
+            overflow-y: auto;
+            margin-bottom: 2rem; /* More space */
+        }
+
+        .cart-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 1.5rem; /* More space */
+            padding-bottom: 1.5rem;
+            border-bottom: 1px solid #34495E; /* Item separator */
+        }
+
+        .cart-item:last-child {
+            border-bottom: none;
+        }
+
+        .cart-item img {
+            width: 70px; /* Larger image */
+            height: 70px;
+            object-fit: cover;
+            border-radius: 0.375rem;
+            margin-right: 1.5rem; /* More space */
+        }
+
+        .item-details {
+            flex-grow: 1;
+        }
+
+        .item-details h3 {
+            font-size: 1.2rem; /* Larger item name */
+            font-weight: 500;
+            margin-bottom: 0.5rem;
+            color: #EEEEEE;
+        }
+
+        .item-details p {
+            font-size: 0.95rem; /* Slightly larger text */
+            color: #A9A9A9;
+        }
+
+        .item-quantity {
+            font-size: 1.1rem; /* Larger quantity/price */
+            font-weight: 700;
+            margin-left: 1.5rem;
+            color: #00ADA5; /* Teal for price */
+        }
+
+        .cart-summary {
+            margin-top: auto;
+            border-top: 1px solid #4A6572;
+            padding-top: 2rem;
+        }
+
+        .cart-total {
+            display: flex;
+            justify-content: space-between;
+            font-size: 1.6rem; /* Larger total */
+            font-weight: bold;
+            margin-bottom: 2rem;
+            color: #FF5722; /* Orange for total */
+        }
+
+        .checkout-button {
+            width: 100%;
+            background-color: #FF5722; /* Orange button */
+            color: white;
+            padding: 1.2rem; /* More padding */
+            font-size: 1.3rem; /* Larger text */
+            font-weight: bold;
+            border-radius: 0.375rem;
+            text-align: center;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        .checkout-button:hover {
+            background-color: #E64A19; /* Darker orange on hover */
+        }
+
+
+        /* Banner Styling */
+        .banner-container {
+            position: relative;
+            width: 100%;
+            max-width: 1400px; /* Wider banner */
+            margin: 0 auto;
+            overflow: hidden;
+            border-radius: 0.5rem;
+            margin-bottom: 3rem; /* More space below */
+        }
+
+        .banner-slides {
+            display: flex;
+            transition: transform 0.6s ease-in-out; /* Slower transition */
+        }
+
+        .banner-slide {
+            min-width: 100%;
+            box-sizing: border-box;
+        }
+
+        .banner-slide img {
+            width: 100%;
+            height: auto;
+            display: block;
+        }
+
+        .banner-navigation {
+            position: absolute;
+            top: 50%;
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            transform: translateY(-50%);
+            padding: 0 1.5rem; /* More padding */
+            z-index: 5;
+        }
+
+        .nav-button {
+            background-color: rgba(44, 58, 71, 0.7); /* Darker semi-transparent */
+            color: #EEEEEE;
+            padding: 1rem 0.75rem; /* More padding */
+            cursor: pointer;
+            border-radius: 0.375rem;
+            transition: background-color 0.3s ease;
+            font-size: 1.8rem; /* Larger icons */
+        }
+
+        .nav-button:hover {
+            background-color: rgba(44, 58, 71, 0.9); /* Less transparent on hover */
+        }
+
+        .banner-indicators {
+            position: absolute;
+            bottom: 1.5rem; /* Lower position */
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 0.75rem; /* More space between dots */
+            z-index: 5;
+        }
+
+        .indicator-dot {
+            width: 12px; /* Larger dots */
+            height: 12px;
+            background-color: rgba(238, 238, 238, 0.5); /* Semi-transparent white */
+            border-radius: 50%;
+            cursor: pointer;
+            transition: background-color 0.3s ease, opacity 0.3s ease;
+        }
+
+        .indicator-dot.active {
+            background-color: #00ADA5; /* Teal for active dot */
+            opacity: 1;
+        }
+         .indicator-dot:hover {
+             opacity: 0.8;
+         }
+
+
+        /* Product Card Styling */
+        .product-card {
+            background-color: #2C3A47; /* Card background */
+            border-radius: 0.5rem;
+            overflow: hidden;
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.4); /* Stronger shadow */
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            border: 1px solid #4A6572;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .product-card:hover {
+             transform: translateY(-5px); /* Lift on hover */
+             box-shadow: 0 10px 20px rgba(0, 0, 0, 0.5); /* Stronger shadow on hover */
+        }
+
+        .product-image {
+            width: 100%;
+            height: 200px; /* Taller image */
+            object-fit: cover;
+        }
+
+        .product-info {
+             padding: 1.5rem; /* More padding */
+             display: flex;
+             flex-direction: column;
+             flex-grow: 1;
+        }
+
+        .product-name {
+            font-size: 1.3rem; /* Larger name */
+            font-weight: 700;
+            margin-bottom: 0.75rem;
+            color: #EEEEEE; /* White name */
+        }
+
+        .product-description {
+            font-size: 0.9rem;
+            color: #A9A9A9; /* Subtle description */
+            margin-bottom: 1rem;
+        }
+
+        .rating {
+            margin-bottom: 1rem;
+        }
+
+        .rating .fa-star,
+        .rating .fa-star-half-alt {
+            color: #FFC107; /* Yellow stars */
+        }
+
+        .rating .fa-star-o {
+            color: #5A7B8D; /* Darker empty stars */
+        }
+
+        .rating-count {
+            font-size: 0.85rem;
+            color: #A9A9A9;
+            margin-left: 0.5rem;
+        }
+
+        .product-price {
+            font-size: 1.4rem; /* Larger price */
+            font-weight: 700;
+            margin-bottom: 1.5rem; /* More space */
+            color: #FF5722; /* Orange price */
+        }
+
+        .action-buttons {
+            margin-top: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+
+        .action-button {
+            all: unset;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-sizing: border-box;
+            width: 100%;
+            min-width: 100%;
+            height: 55px; /* Taller buttons */
+            padding: 10px;
+            border-radius: 0.375rem; /* Rounded corners */
+            font-family: 'Roboto', sans-serif; /* Use Roboto for buttons */
+            font-size: 1rem;
+            font-weight: 500;
+            color: rgb(255, 255, 255);
+            line-height: 1.5;
+            text-align: center;
+            letter-spacing: 0.5px;
+            text-decoration: none;
+            cursor: pointer;
+            user-select: none;
+            transition: background-color 0.3s ease, box-shadow 0.3s ease, opacity 0.3s ease, transform 0.1s ease;
+            border: none;
+            outline: none;
+            position: relative;
+        }
+
+        .action-button:hover:not(:disabled) {
+             transform: translateY(-2px); /* Slight lift on hover */
+             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+        }
+
+
+        /* Specific button color overrides */
+        .btn-primary {
+            background-color: #00ADA5; /* Teal primary button */
+        }
+
+        .btn-primary:hover:not(:disabled) {
+            background-color: #00969E; /* Darker teal on hover */
+        }
+
+        .btn-secondary {
+            background-color: #FF5722; /* Orange secondary button */
+        }
+
+        .btn-secondary:hover:not(:disabled) {
+            background-color: #E64A19; /* Darker orange on hover */
+        }
+
+        .action-button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+
+        .duration-options {
+            margin-bottom: 1.5rem; /* More space */
+        }
+
+        .duration-options h3 {
+            font-size: 0.95rem;
+            font-weight: 500;
+            margin-bottom: 0.75rem;
+            color: #A9A9A9;
+        }
+
+        .duration-option {
+            padding: 0.6rem 1.2rem; /* More padding */
+            border: 1px solid #5A7B8D; /* New border color */
+            border-radius: 0.375rem;
+            cursor: pointer;
+            transition: background-color 0.3s ease, border-color 0.3s ease;
+            font-size: 0.95rem;
+            color: #EEEEEE;
+            background-color: transparent;
+        }
+        .duration-option.active {
+            background-color: #00ADA5; /* Teal background for active */
+            border-color: #00ADA5;
+            color: white;
+        }
+         .duration-option:hover:not(.active) {
+             background-color: #34495E; /* Darker background on hover */
+             border-color: #00ADA5;
+         }
+
+
+        .quantity-selector {
+            display: flex;
+            align-items: center;
+            border: 1px solid #5A7B8D; /* New border color */
+            border-radius: 0.375rem;
+            overflow: hidden;
+            width: 120px; /* Wider selector */
+            margin-bottom: 1.5rem;
+        }
+
+         .quantity-selector-container h3 {
+            font-size: 0.95rem;
+            font-weight: 500;
+            margin-bottom: 0.75rem;
+            color: #A9A9A9;
+         }
+
+        .quantity-button {
+            padding: 0.6rem 1rem; /* More padding */
+            background-color: #5A7B8D; /* Button background */
+            cursor: pointer;
+            user-select: none;
+            transition: background-color 0.3s ease;
+            font-size: 1.1rem;
+            color: #EEEEEE;
+            border: none;
+            line-height: 1;
+        }
+        .quantity-button:hover:not(:disabled) {
+             background-color: #718F9E; /* Lighter on hover */
+        }
+         .quantity-button:disabled {
+             opacity: 0.5;
+             cursor: not-allowed;
+         }
+
+        .quantity-input {
+            flex-grow: 1;
+            text-align: center;
+            padding: 0.6rem 0;
+            background-color: transparent;
+            border: none;
+            color: #EEEEEE;
+            outline: none;
+            font-size: 1.1rem;
+            -moz-appearance: textfield;
+            appearance: textfield;
+        }
+        .quantity-input::-webkit-outer-spin-button,
+        .quantity-input::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+
+
+        .sold-out-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(30, 39, 46, 0.9); /* Darker, more opaque */
+            color: #FF5722; /* Orange text */
+            font-size: 2rem; /* Larger text */
+            font-weight: bold;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 10;
+            text-transform: uppercase;
+            border-radius: 0.5rem;
+            letter-spacing: 2px;
+        }
+
+        /* Side Menu Styles */
+        .side-menu {
+            position: fixed;
+            top: 0;
+            left: -320px; /* Wider menu */
+            width: 300px;
+            height: 100%;
+            background-color: #2C3A47; /* Menu background */
+            color: #EEEEEE;
+            transition: left 0.4s ease-in-out;
+            z-index: 40;
+            padding: 2rem; /* More padding */
+            box-shadow: 3px 0 8px rgba(0, 0, 0, 0.7);
+            display: flex;
+            flex-direction: column;
+            overflow-y: auto;
+        }
+
+        .side-menu.open {
+            left: 0;
+        }
+
+        .menu-close-icon {
+            text-align: right;
+            margin-bottom: 2rem; /* More space */
+            font-size: 2rem; /* Larger icon */
+            cursor: pointer;
+            color: #A9A9A9;
+        }
+         .menu-close-icon:hover {
+             color: #EEEEEE;
+         }
+
+
+        .menu-links ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .menu-links li {
+            margin-bottom: 1.5rem; /* More space */
+        }
+
+        .menu-links a {
+            color: #A9A9A9; /* Subtle link color */
+            text-decoration: none;
+            font-size: 1.2rem; /* Larger text */
+            transition: color 0.3s ease;
+            display: block;
+            padding: 0.75rem 0; /* More padding */
+            border-bottom: 1px solid transparent; /* Add border for hover effect */
+        }
+
+        .menu-links a:hover {
+            color: #00ADA5; /* Teal on hover */
+            border-bottom-color: #00ADA5; /* Teal underline on hover */
+        }
+
+         .menu-bottom-links {
+            margin-top: auto;
+            padding-top: 2rem;
+            border-top: 1px solid #4A6572;
+        }
+
+         .menu-bottom-links .social-icons {
+            display: flex;
+            justify-content: center;
+            gap: 2rem; /* More space */
+            color: #A9A9A9;
+            font-size: 2.2rem; /* Larger icons */
+            margin-bottom: 2rem;
+         }
+         .menu-bottom-links .social-icons a:hover {
+             color: #00ADA5; /* Teal on hover */
+         }
+         .menu-bottom-links .auth-link {
+            color: #A9A9A9;
+            text-decoration: none;
+            font-size: 1.1rem;
+            transition: color 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+         }
+         .menu-bottom-links .auth-link:hover {
+             color: #EEEEEE;
+         }
+         .menu-bottom-links .auth-link i {
+             margin-right: 0.75rem; /* More space */
+         }
+
+
+         .overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.8); /* More opaque */
+            z-index: 15;
+            display: none;
+         }
+
+         .overlay.visible {
+            display: block;
+         }
+
+         /* Login Modal Styles */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(30, 39, 46, 0.95); /* Very dark, almost opaque */
+            z-index: 35;
+            display: none;
+            justify-content: center;
+            align-items: center;
+        }
+        .modal-overlay.visible {
+            display: flex;
+        }
+
+        .login-modal {
+            background-color: #2C3A47; /* Modal background */
+            padding: 2.5rem; /* More padding */
+            border-radius: 0.5rem;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.7); /* Stronger shadow */
+            width: 95%;
+            max-width: 450px; /* Wider modal */
+            position: relative;
+            color: #EEEEEE;
+            border: 1px solid #4A6572;
+        }
+
+        .modal-close-icon {
+            position: absolute;
+            top: 1.2rem; /* Adjusted position */
+            right: 1.2rem;
+            font-size: 1.8rem;
+            color: #A9A9A9;
+            cursor: pointer;
+            transition: color 0.3s ease;
+        }
+        .modal-close-icon:hover {
+            color: #EEEEEE;
+        }
+
+        .login-modal h2 {
+            font-size: 2rem; /* Larger title */
+            font-weight: bold;
+            margin-bottom: 2rem;
+            text-align: center;
+            color: #00ADA5; /* Teal title */
+        }
+
+        .login-modal label {
+            display: block;
+            margin-bottom: 0.6rem; /* More space */
+            font-size: 1rem; /* Larger label */
+            color: #A9A9A9;
+        }
+
+        .login-modal input[type="email"],
+        .login-modal input[type="password"] {
+            width: 100%;
+            padding: 0.9rem 1.2rem; /* More padding */
+            margin-bottom: 1.5rem; /* More space */
+            border: 1px solid #5A7B8D;
+            border-radius: 0.375rem;
+            background-color: #34495E;
+            color: #EEEEEE;
+            font-size: 1.1rem; /* Larger input text */
+            outline: none;
+            transition: border-color 0.3s ease;
+        }
+        .login-modal input[type="email"]:focus,
+        .login-modal input[type="password"]:focus {
+            border-color: #00ADA5; /* Teal highlight */
+        }
+
+        .login-modal button {
+            width: 100%;
+            padding: 1rem; /* More padding */
+            font-size: 1.2rem; /* Larger text */
+            font-weight: bold;
+            border-radius: 0.375rem;
+            cursor: pointer;
+            transition: background-color 0.3s ease, opacity 0.3s ease;
+            margin-top: 0.75rem; /* More space between buttons */
+            border: none;
+        }
+        .login-modal button.btn-login {
+            background-color: #00ADA5; /* Teal login button */
+            color: white;
+        }
+        .login-modal button.btn-login:hover {
+            background-color: #00969E;
+        }
+        .login-modal button.btn-signup {
+            background-color: #FF5722; /* Orange signup button */
+            color: white;
+        }
+        .login-modal button.btn-signup:hover {
+            background-color: #E64A19;
+        }
+         .login-modal button:disabled {
+             opacity: 0.5;
+             cursor: not-allowed;
+         }
+
+        .modal-error {
+            color: #E57373; /* Lighter red for errors */
+            font-size: 0.95rem;
+            text-align: center;
+            margin-top: 1.5rem;
+            min-height: 1.5em; /* Reserve more space */
+        }
+
+        /* Updated: Options Modal Styling */
+        .options-modal {
+            background-color: #2C3A47;
+            padding: 2.5rem;
+            border-radius: 0.5rem;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.7);
+            width: 95%;
+            max-width: 450px;
+            position: relative;
+            color: #EEEEEE;
+            border: 1px solid #4A6572;
+        }
+
+        .options-modal h2 {
+            font-size: 2rem;
+            font-weight: bold;
+            margin-bottom: 2rem;
+            text-align: center;
+            color: #00ADA5;
+        }
+
+        /* Styles for different views */
+         .view-section {
+             display: none;
+         }
+
+         .view-section.active {
+             display: block;
+         }
+
+         /* Styles for individual category sections within categorized view */
+         .category-section {
+             display: none;
+         }
+
+         .category-section.active {
+             display: block;
+         }
+
+         /* Styles for Best Sellers Section */
+         .best-sellers-section {
+             display: none;
+         }
+         .best-sellers-section.active {
+             display: block;
+         }
+
+         /* Featured Product Section Styling */
+         #featured-product-section {
+             background-color: #2C3A47; /* Section background */
+             border-radius: 0.5rem;
+             overflow: hidden;
+             box-shadow: 0 6px 12px rgba(0, 0, 0, 0.4);
+             border: 1px solid #4A6572;
+             margin-bottom: 3rem;
+         }
+
+         #featured-product-section .featured-image {
+             width: 100%;
+             height: auto;
+             object-fit: cover;
+             display: block;
+         }
+
+         #featured-product-section .featured-content {
+             padding: 2rem; /* More padding */
+         }
+
+         #featured-product-section .featured-title {
+             font-size: 2.2rem; /* Larger title */
+             font-weight: bold;
+             margin-bottom: 0.75rem;
+             color: #00ADA5; /* Teal title */
+         }
+
+         #featured-product-section .featured-description {
+             font-size: 1.1rem; /* Larger description */
+             color: #A9A9A9;
+             margin-bottom: 2rem;
+             line-height: 1.7;
+         }
+
+         #featured-product-section .featured-buttons {
+             display: flex;
+             flex-direction: column;
+             gap: 1rem; /* More space */
+         }
+
+         @media (min-width: 640px) {
+             #featured-product-section .featured-buttons {
+                 flex-direction: row;
+             }
+         }
+
+         #featured-product-section .featured-buttons .action-button {
+             flex-grow: 1;
+         }
+
+
+         /* Breadcrumbs Styling */
+         #breadcrumbs {
+            font-size: 1rem; /* Larger text */
+            color: #A9A9A9;
+            margin-bottom: 2rem; /* More space */
+         }
+         #breadcrumbs a {
+             color: #A9A9A9;
+             text-decoration: none;
+             transition: color 0.3s ease;
+         }
+          #breadcrumbs a:hover {
+              color: #EEEEEE;
+          }
+          #breadcrumbs span.separator {
+              color: #5A7B8D; /* Subtle separator */
+              margin: 0 0.75rem; /* More space */
+          }
+          #breadcrumbs span.current-page {
+              color: #00ADA5; /* Teal for current page */
+              font-weight: 700;
+          }
+
+        /* Footer Styling */
+        footer {
+            background-color: #2C3A47; /* Footer background */
+            color: #A9A9A9;
+            font-size: 0.9rem;
+            margin-top: 4rem; /* More space above */
+            padding: 3rem 1.5rem; /* More padding */
+            border-top: 1px solid #4A6572;
+        }
+
+        footer .policy-link {
+             color: #A9A9A9;
+             text-decoration: none;
+             transition: color 0.3s ease;
+             display: flex;
+             align-items: center;
+        }
+        footer .policy-link:hover {
+             color: #EEEEEE;
+        }
+         footer .policy-link i {
+             color: #00ADA5; /* Teal icons */
+         }
+
+         footer h3 {
+             color: #00ADA5; /* Teal heading */
+         }
+
+
+    </style>
 </head>
-<body class="p-4">
-    <div id="side-menu" class="side-menu">
+<body class="p-0"> <div id="side-menu" class="side-menu">
         <div class="menu-close-icon">
             <i class="fas fa-times cursor-pointer"></i>
         </div>
@@ -30,10 +939,10 @@
         </div>
         <div class="menu-bottom-links">
              <div class="social-icons">
-                <a href="#" aria-label="Facebook" class="hover:text-white transition duration-300 ease-in-out"><i class="fab fa-facebook"></i></a>
-                <a href="#" aria-label="Instagram" class="hover:text-white transition duration-300 ease-in-out"><i class="fab fa-instagram"></i></a>
-                <a href="#" aria-label="YouTube" class="hover:text-white transition duration-300 ease-in-out"><i class="fab fa-youtube"></i></a>
-                <a href="#" aria-label="Twitter" class="hover:text-white transition duration-300 ease-in-out"><i class="fab fa-twitter"></i></a>
+                <a href="#" aria-label="Facebook" class="hover:text-teal-400 transition duration-300 ease-in-out"><i class="fab fa-facebook"></i></a>
+                <a href="#" aria-label="Instagram" class="hover:text-teal-400 transition duration-300 ease-in-out"><i class="fab fa-instagram"></i></a>
+                <a href="#" aria-label="YouTube" class="hover:text-teal-400 transition duration-300 ease-in-out"><i class="fab fa-youtube"></i></a>
+                <a href="#" aria-label="Twitter" class="hover:text-teal-400 transition duration-300 ease-in-out"><i class="fab fa-twitter"></i></a>
              </div>
              <div id="menu-auth-container" class="text-center">
                  <a href="#" id="menu-login-link" class="auth-link"><i class="fas fa-sign-in-alt"></i> Log in</a>
@@ -57,12 +966,21 @@
                     <input type="password" id="login-password" name="password" required autocomplete="current-password">
                 </div>
                 <div id="login-error" class="modal-error"></div>
-                <button type="submit" id="login-button" class="btn-login">Login</button>
-                <button type="button" id="signup-button" class="btn-signup">Sign Up</button>
+                <button type="submit" id="login-button" class="btn-primary">Login</button>
+                <button type="button" id="signup-button" class="btn-secondary">Sign Up</button>
             </form>
         </div>
     </div>
 
+    <!-- Updated: Added Options Modal -->
+    <div id="options-modal-overlay" class="modal-overlay">
+        <div class="options-modal">
+            <i id="options-modal-close-icon" class="fas fa-times modal-close-icon" aria-label="Close options modal"></i>
+            <h2 id="options-modal-title">Select Options</h2>
+            <div id="options-modal-content"></div>
+            <button id="options-modal-add-to-cart" class="action-button btn-primary">Add to Cart</button>
+        </div>
+    </div>
 
     <div id="search-bar-container" class="search-bar-container">
         <input type="text" id="search-input" class="search-input" placeholder="Search for products...">
@@ -89,20 +1007,17 @@
     </div>
 
 
-    <header class="flex justify-between items-center py-4 px-4 md:px-6 mb-8">
-        <div class="flex items-center">
-            <i id="menu-icon" class="fas fa-bars header-icon mr-4" aria-label="Open menu"></i>
-            <a href="#" data-view="home" class="header__heading-logo-wrapper">
+    <header class="flex justify-between items-center py-5 px-4 md:px-8 mb-10"> <div class="flex items-center">
+            <i id="menu-icon" class="fas fa-bars header-icon mr-6" aria-label="Open menu"></i> <a href="#" data-view="home" class="header__heading-logo-wrapper">
                 <img src="//www.fanflixbd.com/cdn/shop/files/IMG_2249.png?v=1739793911&width=600"
                      alt="FANFLIX - OTT SUBSCRIPTIONS BD"
-                     srcset="//www.fanflixbd.com/cdn/shop/files/IMG_2249.png?v=1739793911&width=200 200w, //www.fanflixbd.com/cdn/shop/files/IMG_2249.png?v=1739793911&width=300 300w, //www.fanflixbd.com/cdn/shop/files/IMG_2249.png?v=1739793911&width=400 400w"
+                     srcset="//www.fanflixbd.com/cdn/shop/files/IMG_2249.png?v=1739793911&width=200 200w, //www.fanflixbd.com/cdn/shop/files/IMG_2249.png?v=173979911&width=300 300w, //www.fanflixbd.com/cdn/shop/files/IMG_2249.png?v=1739793911&width=400 400w"
                      width="200"
                      height="55" loading="eager"
                      class="header-logo-img" sizes="(max-width: 400px) 50vw, 200px">
             </a>
         </div>
-        <div id="header-auth-icons" class="flex items-center space-x-5">
-            <i id="search-icon" class="fas fa-search header-icon" aria-label="Open search"></i>
+        <div id="header-auth-icons" class="flex items-center space-x-6"> <i id="search-icon" class="fas fa-search header-icon" aria-label="Open search"></i>
             <i id="cart-icon" class="fas fa-shopping-cart header-icon" aria-label="Open shopping cart"></i>
             <div id="header-auth-container">
                  <i id="login-icon" class="fas fa-user header-icon" aria-label="Open login"></i>
@@ -110,8 +1025,7 @@
         </div>
     </header>
 
-    <section class="banner-container mb-12">
-        <div class="banner-slides">
+    <section class="banner-container mb-16"> <div class="banner-slides">
             </div>
         <div class="banner-navigation">
             <button class="nav-button prev-button" aria-label="Previous slide"><i class="fas fa-chevron-left"></i></button>
@@ -122,92 +1036,1053 @@
     </section>
 
 
-    <main class="container mx-auto px-4">
-        <nav id="breadcrumbs" class="mb-6" aria-label="Breadcrumb">
-            </nav>
+    <!-- Existing HTML up to the main content remains unchanged -->
 
-        <section id="best-sellers-section" class="best-sellers-section mb-12" aria-labelledby="best-sellers-heading">
-            <h2 id="best-sellers-heading" class="text-2xl font-bold mb-6 text-center md:text-left">Best Selling Products</h2>
-            <div id="best-selling-products-container" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                </div>
-        </section>
+<main class="container mx-auto px-4 md:px-8">
+    <nav id="breadcrumbs" class="mb-8" aria-label="Breadcrumb"></nav>
 
+    <section id="best-sellers-section" class="best-sellers-section mb-16" aria-labelledby="best-sellers-heading">
+        <h2 id="best-sellers-heading" class="text-3xl font-bold mb-8 text-center md:text-left">Best Selling Products</h2>
+        <div id="best-selling-products-container" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8"></div>
+    </section>
 
-        <section id="all-products-view" class="view-section" aria-labelledby="all-products-heading">
-            <h2 id="all-products-heading" class="text-2xl font-bold mb-6 text-center md:text-left">All Products</h2>
-             <div id="all-products-container" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                 </div>
-        </section>
+    <section id="all-products-view" class="view-section" aria-labelledby="all-products-heading">
+        <h2 id="all-products-heading" class="text-3xl font-bold mb-8 text-center md:text-left">All Products</h2>
+        <div id="all-products-container" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8"></div>
+    </section>
 
-        <section id="categorized-products-view" class="view-section active" aria-label="Product Categories">
-            <div id="streaming-services-section" class="category-section active mb-12" aria-labelledby="streaming-heading">
-                <h2 id="streaming-heading" class="text-2xl font-bold mb-6 text-center md:text-left">STREAMING PLATFORMS</h2>
-                <div id="streaming-platforms-container" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                    </div>
-            </div>
-
-            <div id="educational-tools-section" class="category-section mb-12" aria-labelledby="educational-heading">
-                 <h2 id="educational-heading" class="text-2xl font-bold mb-6 text-center md:text-left">Educational Services</h2>
-                 <div id="educational-services-container" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                    </div>
-            </div>
-
-            <div id="apple-services-section" class="category-section mb-12" aria-labelledby="apple-heading">
-                 <h2 id="apple-heading" class="text-2xl font-bold mb-6 text-center md:text-left">Apple Services</h2>
-                 <div id="apple-services-container" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                    </div>
-            </div>
-        </section>
-
-        <section id="featured-product-section" class="mb-12">
-             <img id="featured-product-image" src="" alt="Featured Product Image" class="featured-image" onerror="this.onerror=null;this.src='https://placehold.co/1200x400/1a1a1a/ffffff?text=Featured+Image+Error';">
-            <div class="featured-content">
-                <h3 id="featured-product-title" class="featured-title"></h3>
-                <p id="featured-product-description" class="featured-description"></p>
-                <div class="featured-buttons">
-                    <button id="featured-buy-now" class="action-button btn-blue">Buy Now</button>
-                    </div>
-            </div>
-        </section>
-
-        <div class="mt-16 border-t border-gray-700 pt-10">
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-10">
-                <div>
-                    <a href="#" data-view="home" class="inline-block mb-4">
-                        <img src="//www.fanflixbd.com/cdn/shop/files/IMG_2249.png?v=1739793911&width=600"
-                              alt="FANFLIX - OTT SUBSCRIPTIONS BD"
-                              width="150" height="41"
-                              loading="lazy" class="header-logo-img"
-                              style="max-height: 35px;" >
-                    </a>
-                    <p class="text-gray-400 mb-6 leading-relaxed">
-                        FanFlix BD is an independent platform in Bangladesh, offering
-                        easy access to popular digital subscriptions using local payment
-                        methods like bKash, Nagad, Rocket, and Bank Transfer. We provide genuine, reliable services.
-                    </p>
-                    </div>
-
-                <nav aria-label="Policy links">
-                    <h3 class="text-xl font-semibold mb-4 uppercase tracking-wider">Our Policies</h3>
-                    <ul class="space-y-3">
-                        <li><a href="#" class="policy-link hover:text-white transition-colors"><i class="fas fa-undo-alt w-4 mr-2 text-center"></i>Refund & Exchange Policy</a></li>
-                        <li><a href="#" class="policy-link hover:text-white transition-colors"><i class="fas fa-file-contract w-4 mr-2 text-center"></i>Terms & Conditions</a></li>
-                        <li><a href="#" class="policy-link hover:text-white transition-colors"><i class="fas fa-user-shield w-4 mr-2 text-center"></i>Privacy Policy</a></li>
-                        <li><a href="#" class="policy-link hover:text-white transition-colors"><i class="fas fa-ban w-4 mr-2 text-center"></i>Order & Cancellation Policy</a></li>
-                        <li><a href="#" class="policy-link hover:text-white transition-colors"><i class="fas fa-scroll w-4 mr-2 text-center"></i>EULA</a></li>
-                        <li><a href="#" class="policy-link hover:text-white transition-colors"><i class="fas fa-trademark w-4 mr-2 text-center"></i>Trademark</a></li>
-                    </ul>
-                </nav>
-            </div>
+    <section id="categorized-products-view" class="view-section active" aria-label="Product Categories">
+        <div id="streaming-services-section" class="category-section active mb-16" aria-labelledby="streaming-heading">
+            <h2 id="streaming-heading" class="text-3xl font-bold mb-8 text-center md:text-left">STREAMING PLATFORMS</h2>
+            <div id="streaming-platforms-container" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8"></div>
         </div>
 
-    </main>
+        <div id="educational-tools-section" class="category-section mb-16" aria-labelledby="educational-heading">
+            <h2 id="educational-heading" class="text-3xl font-bold mb-8 text-center md:text-left">Educational Services</h2>
+            <div id="educational-services-container" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8"></div>
+        </div>
 
-    <footer class="text-center text-gray-500 text-sm mt-12 py-6 border-t border-gray-700">
-        &copy; 2023-2024 FANFLIX BD. All rights reserved. Website developed with care.
-    </footer>
+        <div id="apple-services-section" class="category-section mb-16" aria-labelledby="apple-heading">
+            <h2 id="apple-heading" class="text-3xl font-bold mb-8 text-center md:text-left">Apple Services</h2>
+            <div id="apple-services-container" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8"></div>
+        </div>
+    </section>
 
-    <script src="script.js" defer></script>
+    <!-- Updated: Featured Product Section with Default Styling and Placeholder -->
+    <section id="featured-product-section" class="mb-16">
+        <article class="product-card flex flex-col h-full" aria-label="Featured Product" data-product-id="general1">
+            <img src="https://placehold.co/1400x500/2C3A47/00ADA5?text=Featured+Banner" alt="Featured Product Banner" class="product-image" loading="lazy" onerror="this.onerror=null;this.src='https://placehold.co/1400x500/2C3A47/EEEEEE?text=Banner+Error';">
+            <div class="product-info flex flex-col flex-grow p-4">
+                <div class="flex-grow">
+                    <h3 class="product-name font-semibold text-lg mb-1" id="featured-title">SHARED CHATGPT PLUS</h3>
+                    <p class="product-description text-sm text-gray-400 mb-2" id="featured-description">Unlock Premium Features with ChatGPT Plus - Faster, Smarter, and Always Ready to Assist!</p>
+                    <div class="rating text-sm mb-2" role="img" aria-label="Rating: 4.9 out of 5 stars" id="featured-rating">
+                        ${generateStarRatingHTML(4.9)}
+                        <span class="rating-count text-gray-500 ml-1">(200)</span>
+                    </div>
+                </div>
+                <div>
+                    <p class="product-price text-xl font-bold mb-3" id="featured-price">Tk 450.00 BDT</p>
+                    <div class="action-buttons mt-4 space-y-2">
+                        <button id="featured-buy-now" class="action-button btn-primary">Buy Now</button>
+                    </div>
+                </div>
+            </div>
+        </article>
+    </section>
 
+    <div class="mt-20 border-t border-gray-700 pt-12">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-12">
+            <div>
+                <a href="#" data-view="home" class="inline-block mb-6">
+                    <img src="//www.fanflixbd.com/cdn/shop/files/IMG_2249.png?v=1739793911&width=600"
+                         alt="FANFLIX - OTT SUBSCRIPTIONS BD"
+                         width="180" height="49" loading="lazy" class="header-logo-img"
+                         style="max-height: 40px;">
+                </a>
+                <p class="text-gray-400 mb-8 leading-relaxed"> FanFlix BD is an independent platform in Bangladesh, offering
+                    easy access to popular digital subscriptions using local payment
+                    methods like bKash, Nagad, Rocket, and Bank Transfer. We provide genuine, reliable services.
+                </p>
+            </div>
+            <nav aria-label="Policy links">
+                <h3 class="text-2xl font-semibold mb-6 uppercase tracking-wider">Our Policies</h3>
+                <ul class="space-y-4">
+                    <li><a href="#" class="policy-link hover:text-white transition-colors"><i class="fas fa-undo-alt w-5 mr-3 text-center"></i>Refund & Exchange Policy</a></li>
+                    <li><a href="#" class="policy-link hover:text-white transition-colors"><i class="fas fa-file-contract w-5 mr-3 text-center"></i>Terms & Conditions</a></li>
+                    <li><a href="#" class="policy-link hover:text-white transition-colors"><i class="fas fa-user-shield w-5 mr-3 text-center"></i>Privacy Policy</a></li>
+                    <li><a href="#" class="policy-link hover:text-white transition-colors"><i class="fas fa-ban w-5 mr-3 text-center"></i>Order & Cancellation Policy</a></li>
+                    <li><a href="#" class="policy-link hover:text-white transition-colors"><i class="fas fa-scroll w-5 mr-3 text-center"></i>EULA</a></li>
+                    <li><a href="#" class="policy-link hover:text-white transition-colors"><i class="fas fa-trademark w-5 mr-3 text-center"></i>Trademark</a></li>
+                </ul>
+            </nav>
+        </div>
+    </div>
+</main>
+
+<footer class="text-center text-gray-500 text-sm mt-20 py-8 border-t border-gray-700"> © 2023-2024 FANFLIX BD. All rights reserved. Website developed with care.</footer>
+
+<script>
+    // --- Firebase Configuration ---
+    // IMPORTANT: REPLACE THIS WITH YOUR ACTUAL FIREBASE CONFIGURATION
+    const firebaseConfig = {
+        apiKey: "YOUR_API_KEY",
+        authDomain: "YOUR_AUTH_DOMAIN",
+        projectId: "YOUR_PROJECT_ID",
+        storageBucket: "YOUR_STORAGE_BUCKET",
+        messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
+        appId: "YOUR_APP_ID"
+    };
+
+    // --- Initialize Firebase ---
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    const db = firebase.firestore();
+
+    // --- Global State ---
+    let allProducts = [];
+    let cartItems = [];
+    let currentSlideIndex = 0;
+    let slideInterval;
+    const BANNER_INTERVAL_MS = 6000;
+    let currentUser = null;
+
+    // --- DOM Elements ---
+    const sideMenu = document.getElementById('side-menu');
+    const menuOverlay = document.getElementById('menu-overlay');
+    const searchBarContainer = document.getElementById('search-bar-container');
+    const searchInput = document.getElementById('search-input');
+    const cartContainer = document.getElementById('cart-container');
+    const cartItemsContainer = document.getElementById('cart-items');
+    const cartTotalPriceElement = document.getElementById('cart-total-price');
+    const bannerSlidesContainer = document.querySelector('.banner-slides');
+    const bannerIndicatorsContainer = document.querySelector('.banner-indicators');
+    const breadcrumbs = document.getElementById('breadcrumbs');
+    const bestSellersSection = document.getElementById('best-sellers-section');
+    const allProductsView = document.getElementById('all-products-view');
+    const categorizedProductsView = document.getElementById('categorized-products-view');
+    const allProductsContainer = document.getElementById('all-products-container');
+    const streamingPlatformsContainer = document.getElementById('streaming-platforms-container');
+    const educationalServicesContainer = document.getElementById('educational-services-container');
+    const appleServicesContainer = document.getElementById('apple-services-container');
+    const bestSellingProductsContainer = document.getElementById('best-selling-products-container');
+    const loginModalOverlay = document.getElementById('login-modal-overlay');
+    const loginModal = document.querySelector('.login-modal');
+    const loginForm = document.getElementById('login-form');
+    const loginEmailInput = document.getElementById('login-email');
+    const loginPasswordInput = document.getElementById('login-password');
+    const loginError = document.getElementById('login-error');
+    const headerAuthContainer = document.getElementById('header-auth-container');
+    const menuAuthContainer = document.getElementById('menu-auth-container');
+    const featuredProductSection = document.getElementById('featured-product-section');
+    const featuredTitle = document.getElementById('featured-title');
+    const featuredDescription = document.getElementById('featured-description');
+    const featuredRating = document.getElementById('featured-rating');
+    const featuredPrice = document.getElementById('featured-price');
+    // Updated: Options Modal Elements
+    const optionsModalOverlay = document.getElementById('options-modal-overlay');
+    const optionsModalContent = document.getElementById('options-modal-content');
+    const optionsModalAddToCart = document.getElementById('options-modal-add-to-cart');
+
+    // --- Initialization ---
+    document.addEventListener('DOMContentLoaded', () => {
+        setupEventListeners();
+        fetchAndRenderData();
+        renderCartItems();
+        setupFirebaseAuthObserver();
+        loadCartFromFirestore();
+    });
+
+    // --- Event Listener Setup ---
+    function setupEventListeners() {
+        document.getElementById('menu-icon')?.addEventListener('click', openMenu);
+        sideMenu?.querySelector('.menu-close-icon i')?.addEventListener('click', closeMenu);
+        menuOverlay?.addEventListener('click', closeMenu);
+
+        sideMenu?.querySelectorAll('.menu-links a[data-view]').forEach(link => {
+            link.addEventListener('click', handleViewChange);
+        });
+
+        document.querySelectorAll('a[data-view="home"]').forEach(link => {
+            link.addEventListener('click', handleViewChange);
+        });
+
+        document.getElementById('search-icon')?.addEventListener('click', showSearchBar);
+        document.getElementById('search-close-icon')?.addEventListener('click', hideSearchBar);
+        searchInput?.addEventListener('input', handleSearchInput);
+
+        document.getElementById('cart-icon')?.addEventListener('click', showCart);
+        document.getElementById('cart-close-icon')?.addEventListener('click', hideCart);
+
+        document.getElementById('modal-close-icon')?.addEventListener('click', hideLoginModal);
+        loginModalOverlay?.addEventListener('click', (event) => {
+            if (event.target === loginModalOverlay) hideLoginModal();
+        });
+
+        document.getElementById('options-modal-close-icon')?.addEventListener('click', hideOptionsModal);
+        optionsModalOverlay?.addEventListener('click', (event) => {
+            if (event.target === optionsModalOverlay) hideOptionsModal();
+        });
+
+        loginForm?.addEventListener('submit', handleLoginAttempt);
+        document.getElementById('signup-button')?.addEventListener('click', handleSignupAttempt);
+
+        document.querySelector('.checkout-button')?.addEventListener('click', handleCheckout);
+
+        document.querySelector('.prev-button')?.addEventListener('click', showPrevSlide);
+        document.querySelector('.next-button')?.addEventListener('click', showNextSlide);
+        const bannerContainerElement = document.querySelector('.banner-container');
+        if (bannerContainerElement) {
+            bannerContainerElement.addEventListener('mouseenter', () => clearInterval(slideInterval));
+            bannerContainerElement.addEventListener('mouseleave', startSlideShow);
+        }
+
+        breadcrumbs?.addEventListener('click', (event) => {
+            if (event.target.tagName === 'A' && event.target.dataset.view) {
+                event.preventDefault();
+                showView(event.target.dataset.view);
+            }
+        });
+
+        const productContainers = [
+            allProductsContainer, streamingPlatformsContainer, educationalServicesContainer,
+            appleServicesContainer, bestSellingProductsContainer
+        ];
+        productContainers.forEach(container => {
+            container?.addEventListener('click', handleProductCardInteraction);
+        });
+
+        cartItemsContainer?.addEventListener('click', (event) => {
+            const removeButton = event.target.closest('.remove-item-button');
+            if (removeButton) {
+                const itemId = removeButton.dataset.itemId;
+                removeItemFromCart(itemId);
+            }
+        });
+
+        document.addEventListener('click', (event) => {
+            if (event.target.matches('#login-icon') || event.target.matches('#menu-login-link')) {
+                event.preventDefault();
+                showLoginModal();
+            } else if (event.target.matches('#logout-button') || event.target.matches('#menu-logout-link')) {
+                event.preventDefault();
+                handleLogout();
+            }
+        });
+
+        document.getElementById('featured-buy-now')?.addEventListener('click', handleFeaturedBuyNow);
+
+        document.addEventListener('keydown', (event) => {
+            if (event.key === 'Escape') {
+                hideSearchBar();
+                hideCart();
+                hideLoginModal();
+                hideOptionsModal();
+                closeMenu();
+            }
+        });
+    }
+
+    // --- Firebase Authentication ---
+    function setupFirebaseAuthObserver() {
+        auth.onAuthStateChanged(user => {
+            if (user) {
+                console.log("User signed in:", user.email);
+                currentUser = user;
+                updateUIForLoggedInUser(user);
+                loadCartFromFirestore();
+            } else {
+                console.log("User signed out.");
+                currentUser = null;
+                updateUIForLoggedOutUser();
+                cartItems = [];
+                renderCartItems();
+            }
+            hideLoginModal();
+        });
+    }
+
+    function handleLoginAttempt(event) {
+        event.preventDefault();
+        const email = loginEmailInput.value;
+        const password = loginPasswordInput.value;
+        clearLoginError();
+
+        auth.signInWithEmailAndPassword(email, password)
+            .then((userCredential) => {
+                console.log("Login successful:", userCredential.user.email);
+            })
+            .catch((error) => {
+                console.error("Login error:", error.code, error.message);
+                displayLoginError(error.message);
+            });
+    }
+
+    function handleSignupAttempt() {
+        const email = loginEmailInput.value;
+        const password = loginPasswordInput.value;
+        clearLoginError();
+
+        if (password.length < 6) {
+            displayLoginError("Password should be at least 6 characters.");
+            return;
+        }
+
+        auth.createUserWithEmailAndPassword(email, password)
+            .then((userCredential) => {
+                console.log("Signup successful:", userCredential.user.email);
+            })
+            .catch((error) => {
+                console.error("Signup error:", error.code, error.message);
+                displayLoginError(error.message);
+            });
+    }
+
+    function handleLogout() {
+        auth.signOut().then(() => {
+            console.log("Logout successful.");
+        }).catch((error) => {
+            console.error("Logout error:", error);
+            alert("Error logging out. Please try again.");
+        });
+    }
+
+    function updateUIForLoggedInUser(user) {
+        if (headerAuthContainer) {
+            headerAuthContainer.innerHTML = `
+                <button id="logout-button" class="header-icon flex items-center" aria-label="Logout">
+                    <i class="fas fa-sign-out-alt"></i>
+                </button>
+            `;
+        }
+        if (menuAuthContainer) {
+            menuAuthContainer.innerHTML = `
+                <a href="#" id="menu-logout-link" class="auth-link"><i class="fas fa-sign-out-alt"></i> Logout</a>
+            `;
+        }
+        closeMenu();
+    }
+
+    function updateUIForLoggedOutUser() {
+        if (headerAuthContainer) {
+            headerAuthContainer.innerHTML = `
+                <i id="login-icon" class="fas fa-user header-icon" aria-label="Open login"></i>
+            `;
+        }
+        if (menuAuthContainer) {
+            menuAuthContainer.innerHTML = `
+                <a href="#" id="menu-login-link" class="auth-link"><i class="fas fa-sign-in-alt"></i> Log in</a>
+            `;
+        }
+    }
+
+    function displayLoginError(message) {
+        if (loginError) {
+            switch (message) {
+                case "Firebase: Error (auth/invalid-email).":
+                    message = "Please enter a valid email address.";
+                    break;
+                case "Firebase: Error (auth/user-not-found).":
+                case "Firebase: Error (auth/wrong-password).":
+                    message = "Incorrect email or password.";
+                    break;
+                case "Firebase: Error (auth/email-already-in-use).":
+                    message = "This email address is already registered.";
+                    break;
+                case "Firebase: Password should be at least 6 characters long (auth/weak-password).":
+                    message = "Password should be at least 6 characters.";
+                    break;
+                default:
+                    message = "An error occurred. Please try again.";
+            }
+            loginError.textContent = message;
+        }
+    }
+
+    function clearLoginError() {
+        if (loginError) loginError.textContent = '';
+    }
+
+    async function saveCartToFirestore() {
+        if (currentUser) {
+            try {
+                await db.collection('users').doc(currentUser.uid).set({ cart: cartItems }, { merge: true });
+                console.log("Cart saved to Firestore.");
+            } catch (error) {
+                console.error("Error saving cart:", error);
+            }
+        }
+    }
+
+    async function loadCartFromFirestore() {
+        if (currentUser) {
+            try {
+                const userDoc = await db.collection('users').doc(currentUser.uid).get();
+                if (userDoc.exists && userDoc.data().cart) {
+                    cartItems = userDoc.data().cart;
+                    renderCartItems();
+                    console.log("Cart loaded from Firestore:", cartItems);
+                }
+            } catch (error) {
+                console.error("Error loading cart:", error);
+            }
+        }
+    }
+
+    function handleCheckout() {
+        if (cartItems.length === 0) {
+            alert('Your cart is empty.');
+            return;
+        }
+        console.log("Proceeding to checkout with items:", cartItems);
+        window.location.href = '/checkout';
+    }
+
+    // --- Data Fetching and Rendering ---
+    async function fetchAndRenderData() {
+        console.log("Fetching products from Firebase...");
+        try {
+            let bannerImages = [];
+            try {
+                const bannersSnapshot = await db.collection('banners').get();
+                bannerImages = bannersSnapshot.docs.map(doc => doc.data().imageUrl);
+            } catch (error) {
+                console.warn("Error fetching banners, using fallback:", error);
+                bannerImages = [
+                    "https://placehold.co/1400x500/1E272E/00ADA5?text=Welcome+to+FANFLIX+BD",
+                    "https://placehold.co/1400x500/1E272E/FF5722?text=Get+Your+Favorite+Subscriptions",
+                    "https://placehold.co/1400x500/1E272E/EEEEEE?text=Unlock+Digital+World+with+Us",
+                ];
+            }
+
+            try {
+                const productsSnapshot = await db.collection('products').get();
+                allProducts = productsSnapshot.docs.map(doc => ({
+                    id: doc.id,
+                    ...doc.data()
+                }));
+            } catch (error) {
+                console.warn("Error fetching products, using fallback:", error);
+                allProducts = [
+                    { id: 'stream1', name: "Netflix Subscription", description: "(Mobile / PC / Laptop)", imageUrl: "https://placehold.co/300x200/E50914/FFFFFF?text=Netflix", rating: 4.5, ratingCount: 47, price: 249.00, category: "streaming-services", isBestSeller: true, durationOptions: ['1 Month', '3 Months', '1 Year'], showQuantity: false },
+                    { id: 'stream2', name: "Spotify Premium", description: "Listen ad-free", imageUrl: "https://placehold.co/300x200/1DB954/FFFFFF?text=Spotify", rating: 4.8, ratingCount: 120, price: 150.00, category: "streaming-services", isBestSeller: true, durationOptions: ['1 Month', '6 Months'], showQuantity: false },
+                    { id: 'edu1', name: "Coursera Plus", description: "Learn anything", imageUrl: "https://placehold.co/300x200/0056D2/FFFFFF?text=Coursera", rating: 4.7, ratingCount: 88, price: 800.00, category: "educational-tools", isBestSeller: false, durationOptions: ['1 Year'], showQuantity: false },
+                    { id: 'apple1', name: "Apple Music", description: "Over 100M songs", imageUrl: "https://placehold.co/300x200/FA275A/FFFFFF?text=Apple+Music", rating: 4.6, ratingCount: 65, price: 180.00, category: "apple-services", isBestSeller: true, durationOptions: ['1 Month', '1 Year'], showQuantity: false },
+                    { id: 'stream3', name: "Disney+ Hotstar", description: "Movies & Shows", imageUrl: "https://placehold.co/300x200/1A1D29/FFFFFF?text=Disney+", rating: 4.3, ratingCount: 30, price: 199.00, category: "streaming-services", isBestSeller: false, durationOptions: ['1 Month', '6 Months'], showQuantity: false },
+                    { id: 'edu2', name: "Duolingo Super", description: "Learn a language", imageUrl: "https://placehold.co/300x200/58CC02/FFFFFF?text=Duolingo", rating: 4.9, ratingCount: 150, price: 120.00, category: "educational-tools", isBestSeller: false, durationOptions: ['1 Month', '1 Year'], showQuantity: false },
+                    { id: 'apple2', name: "iCloud+", description: "Cloud Storage", imageUrl: "https://placehold.co/300x200/34AADC/FFFFFF?text=iCloud+", rating: 4.4, ratingCount: 40, price: 50.00, category: "apple-services", isBestSeller: false, durationOptions: ['1 Month'], showQuantity: false },
+                    { id: 'stream4', name: "Amazon Prime Video", description: "Streaming & more", imageUrl: "https://placehold.co/300x200/00A8E1/FFFFFF?text=Prime+Video", rating: 4.2, ratingCount: 55, price: 220.00, category: "streaming-services", isBestSeller: true, durationOptions: ['1 Month', '1 Year'], showQuantity: false },
+                    { id: 'general1', name: "Shared ChatGPT Plus", description: "Unlock Premium Features with ChatGPT Plus - Faster, Smarter, and Always Ready to Assist!", imageUrl: "https://placehold.co/300x200/74AA9C/FFFFFF?text=ChatGPT", rating: 4.9, ratingCount: 200, price: 450.00, category: "educational-tools", isBestSeller: true, durationOptions: ['1 Month'], showQuantity: false },
+                    { id: 'general2', name: "Grammarly Premium", description: "Writing Assistant", imageUrl: "https://placehold.co/300x200/4285F4/FFFFFF?text=Grammarly", rating: 4.7, ratingCount: 95, price: 300.00, category: "educational-tools", isBestSeller: true, durationOptions: ['1 Month', '1 Year'], showQuantity: false },
+                    { id: 'general3', name: "YouTube Premium", description: "Ad-free YouTube", imageUrl: "https://placehold.co/300x200/FF0000/FFFFFF?text=YouTube", rating: 4.6, ratingCount: 70, price: 200.00, category: "streaming-services", isBestSeller: false, durationOptions: ['1 Month'], showQuantity: false },
+                    { id: 'general4', name: "Microsoft 365 Personal", description: "Office Apps & Storage", imageUrl: "https://placehold.co/300x200/0078D4/FFFFFF?text=Microsoft+365", rating: 4.5, ratingCount: 80, price: 600.00, category: "educational-tools", isBestSeller: false, durationOptions: ['1 Year'], showQuantity: false },
+                ];
+            }
+
+            renderBanner(bannerImages);
+
+            // Render products
+            renderProducts(streamingPlatformsContainer, filterProductsByCategory('streaming-services'));
+            renderProducts(educationalServicesContainer, filterProductsByCategory('educational-tools'));
+            renderProducts(appleServicesContainer, filterProductsByCategory('apple-services'));
+            renderProducts(allProductsContainer, allProducts);
+            renderProducts(bestSellingProductsContainer, filterBestSellingProducts());
+
+            // Updated: Render featured product from allProducts
+            const featuredProduct = allProducts.find(p => p.id === 'general1');
+            if (featuredProduct) {
+                featuredTitle.textContent = featuredProduct.name;
+                featuredDescription.textContent = featuredProduct.description;
+                featuredRating.innerHTML = `${generateStarRatingHTML(featuredProduct.rating)}${featuredProduct.ratingCount ? `<span class="rating-count text-gray-500 ml-1">(${featuredProduct.ratingCount})</span>` : ''}`;
+                featuredPrice.textContent = formatPrice(featuredProduct.price);
+                featuredProductSection.querySelector('img').src = featuredProduct.imageUrl || "https://placehold.co/1400x500/2C3A47/00ADA5?text=Featured+Banner";
+            } else {
+                featuredTitle.textContent = "Featured Product";
+                featuredDescription.textContent = "No featured product available.";
+                featuredRating.innerHTML = '';
+                featuredPrice.textContent = "Contact for Price";
+                featuredProductSection.querySelector('img').src = "https://placehold.co/1400x500/2C3A47/EEEEEE?text=No+Featured+Product";
+            }
+
+            showView('home');
+        } catch (error) {
+            console.error("Error fetching or rendering data:", error);
+            displayErrorMessage("Failed to load products. Please try again later.");
+        }
+    }
+
+    // --- Product Filtering ---
+    function filterProductsByCategory(category) {
+        return allProducts.filter(product => product.category === category);
+    }
+    function filterBestSellingProducts() {
+        return allProducts.filter(product => product.isBestSeller);
+    }
+    function filterProductsBySearch(searchTerm) {
+        if (!searchTerm) return allProducts;
+        const lowerCaseSearchTerm = searchTerm.toLowerCase();
+        return allProducts.filter(product =>
+            product.name.toLowerCase().includes(lowerCaseSearchTerm) ||
+            (product.description && product.description.toLowerCase().includes(lowerCaseSearchTerm)) ||
+            (product.category && product.category.toLowerCase().includes(lowerCaseSearchTerm))
+        );
+    }
+
+    // --- Rendering Functions ---
+    function renderProducts(containerElement, productsToRender) {
+        if (!containerElement) return;
+        containerElement.innerHTML = '';
+        if (!productsToRender || productsToRender.length === 0) {
+            containerElement.innerHTML = '<p class="text-center text-gray-500 col-span-full py-8">No products found.</p>';
+            return;
+        }
+        const fragment = document.createDocumentFragment();
+        productsToRender.forEach(product => {
+            const cardElement = document.createElement('div');
+            cardElement.innerHTML = createProductCardHTML(product).trim();
+            if (cardElement.firstElementChild) fragment.appendChild(cardElement.firstElementChild);
+        });
+        containerElement.appendChild(fragment);
+    }
+
+    function createProductCardHTML(product) {
+        const id = product.id || '';
+        const name = product.name || 'Product Name';
+        const description = product.description || '';
+        const imageUrl = product.imageUrl || 'https://placehold.co/300x200/2C3A47/EEEEEE?text=Image+Placeholder';
+        const rating = product.rating !== undefined ? product.rating : null;
+        const ratingCount = product.ratingCount !== undefined ? product.ratingCount : '';
+        const price = product.price !== undefined ? product.price : 'Contact for Price';
+        const isSoldOut = product.isSoldOut || false;
+        const durationOptions = product.durationOptions || [];
+        const showQuantity = product.showQuantity || false;
+        const details = product.details || '';
+
+        const priceFormatted = typeof price === 'number' ? formatPrice(price) : price;
+        const isActionable = !isSoldOut;
+
+        const durationOptionsHTML = durationOptions.length > 0 ? `
+            <div class="duration-options mt-4">
+                <h3 class="text-xs font-semibold mb-2 text-gray-400 uppercase tracking-wider">Duration</h3>
+                <div class="flex flex-wrap gap-2">
+                    ${durationOptions.map((option, index) => `
+                        <button class="duration-option text-sm px-3 py-1 border border-gray-600 rounded hover:bg-gray-600 transition-colors ${index === 0 ? 'active bg-gray-600' : ''}"
+                                data-duration="${option}"
+                                data-product-id="${id}"
+                                ${!isActionable ? 'disabled' : ''}
+                                aria-pressed="${index === 0 ? 'true' : 'false'}">
+                            ${option}
+                        </button>
+                    `).join('')}
+                </div>
+            </div>
+        ` : '';
+
+        const quantitySelectorHTML = showQuantity ? `
+            <div class="quantity-selector-container mt-4">
+                <h3 class="text-xs font-semibold mb-2 text-gray-400 uppercase tracking-wider">Quantity</h3>
+                <div class="quantity-selector inline-flex">
+                    <button class="quantity-button minus bg-gray-600 hover:bg-gray-500 rounded-l px-3 py-1"
+                            data-product-id="${id}"
+                            ${!isActionable ? 'disabled' : ''}>-</button>
+                    <input type="number" value="1" min="1"
+                           class="quantity-input w-12 text-center bg-gray-700 border-t border-b border-gray-600"
+                           readonly
+                           data-product-id="${id}">
+                    <button class="quantity-button plus bg-gray-600 hover:bg-gray-500 rounded-r px-3 py-1"
+                            data-product-id="${id}"
+                            ${!isActionable ? 'disabled' : ''}>+</button>
+                </div>
+            </div>
+        ` : '';
+
+        let actionButtonsHTML = '';
+        if (isActionable) {
+            if (durationOptions.length > 0 || showQuantity) {
+                actionButtonsHTML = `<button class="action-button btn-primary choose-options-button" data-product-id="${id}">Choose Options</button>`;
+            } else {
+                actionButtonsHTML = `<button class="action-button btn-secondary add-to-cart-button" data-product-id="${id}"><i class="fas fa-cart-plus mr-2"></i> Add to Cart</button>`;
+            }
+        }
+
+        return `
+            <article class="product-card flex flex-col h-full ${isSoldOut ? 'relative' : ''}" aria-label="${name}" data-product-id="${id}">
+                ${isSoldOut ? '<div class="sold-out-overlay" aria-hidden="true">Sold out</div>' : ''}
+                <img src="${imageUrl}" alt="${name}" class="product-image" loading="lazy" onerror="this.onerror=null;this.src='https://placehold.co/300x200/2C3A47/EEEEEE?text=Image+Error';">
+                <div class="product-info flex flex-col flex-grow p-4">
+                    <div class="flex-grow">
+                        <h3 class="product-name font-semibold text-lg mb-1">${name}</h3>
+                        ${description ? `<p class="product-description text-sm text-gray-400 mb-2">${description}</p>` : ''}
+                        ${rating !== null ? `
+                            <div class="rating text-sm mb-2" role="img" aria-label="Rating: ${rating} out of 5 stars">
+                                ${generateStarRatingHTML(rating)}
+                                ${ratingCount !== '' ? `<span class="rating-count text-gray-500 ml-1">(${ratingCount})</span>` : ''}
+                            </div>
+                        ` : ''}
+                        ${details ? `<p class="text-xs text-gray-500 mb-3">${details}</p>` : ''}
+                    </div>
+                    <div>
+                        <p class="product-price text-xl font-bold mb-3">${priceFormatted}</p>
+                        ${durationOptionsHTML}
+                        ${quantitySelectorHTML}
+                        <div class="action-buttons mt-4 space-y-2">
+                            ${actionButtonsHTML}
+                        </div>
+                    </div>
+                </div>
+            </article>
+        `;
+    }
+
+    function generateStarRatingHTML(rating) {
+        let stars = '';
+        const fullStars = Math.floor(rating);
+        const halfStar = rating % 1 >= 0.5;
+        const emptyStars = 5 - fullStars - (halfStar ? 1 : 0);
+        for (let i = 0; i < fullStars; i++) stars += '<i class="fas fa-star text-yellow-400" aria-hidden="true"></i>';
+        if (halfStar) stars += '<i class="fas fa-star-half-alt text-yellow-400" aria-hidden="true"></i>';
+        for (let i = 0; i < emptyStars; i++) stars += '<i class="far fa-star text-gray-500" aria-hidden="true"></i>';
+        return stars;
+    }
+
+    function renderBanner(images) {
+        if (!bannerSlidesContainer || !bannerIndicatorsContainer || !images || images.length === 0) return;
+        bannerSlidesContainer.innerHTML = '';
+        bannerIndicatorsContainer.innerHTML = '';
+        const fragmentSlides = document.createDocumentFragment();
+        const fragmentIndicators = document.createDocumentFragment();
+        images.forEach((imageUrl, index) => {
+            const slide = document.createElement('div');
+            slide.classList.add('banner-slide');
+            const img = document.createElement('img');
+            img.src = imageUrl;
+            img.alt = `Banner Image ${index + 1}`;
+            img.classList.add('w-full', 'h-auto', 'object-cover');
+            img.setAttribute('loading', 'lazy');
+            img.onerror = () => {
+                img.alt = 'Banner Image Failed to Load';
+                img.src = `https://placehold.co/1400x500/2C3A47/EEEEEE?text=Banner+Image+Error`;
+            };
+            slide.appendChild(img);
+            fragmentSlides.appendChild(slide);
+            const dot = document.createElement('button');
+            dot.classList.add('indicator-dot', 'w-3', 'h-3', 'rounded-full', 'bg-white', 'opacity-50', 'hover:opacity-75', 'transition-opacity');
+            dot.setAttribute('aria-label', `Go to slide ${index + 1}`);
+            if (index === 0) dot.classList.add('active', 'opacity-100');
+            dot.addEventListener('click', () => {
+                goToSlide(index);
+                resetSlideInterval();
+            });
+            fragmentIndicators.appendChild(dot);
+        });
+        bannerSlidesContainer.appendChild(fragmentSlides);
+        bannerIndicatorsContainer.appendChild(fragmentIndicators);
+        currentSlideIndex = 0;
+        goToSlide(0);
+        startSlideShow();
+    }
+
+    function renderCartItems() {
+        if (!cartItemsContainer || !cartTotalPriceElement) return;
+        cartItemsContainer.innerHTML = '';
+        let total = 0;
+        if (cartItems.length === 0) {
+            cartItemsContainer.innerHTML = '<p class="text-center text-gray-500 py-8">Your cart is empty.</p>';
+        } else {
+            const fragment = document.createDocumentFragment();
+            cartItems.forEach(item => {
+                const product = allProducts.find(p => p.id === item.id);
+                if (!product) return;
+                const itemTotal = product.price * (item.quantity || 1);
+                total += itemTotal;
+                const cartItem = document.createElement('div');
+                cartItem.classList.add('cart-item', 'flex', 'items-center', 'mb-4', 'pb-4', 'border-b', 'border-gray-700');
+                cartItem.innerHTML = `
+                    <img src="${product.imageUrl || 'https://placehold.co/70x70/2C3A47/EEEEEE?text=Image'}" alt="${product.name}" class="w-16 h-16 object-cover rounded mr-4" loading="lazy" onerror="this.src='https://placehold.co/70x70/2C3A47/EEEEEE?text=Image+Error';">
+                    <div class="item-details flex-grow">
+                        <h3 class="text-base font-medium">${product.name}</h3>
+                        ${item.duration ? `<p class="text-sm text-gray-400">Duration: ${item.duration}</p>` : ''}
+                        ${item.quantity ? `<p class="text-sm text-gray-400">Quantity: ${item.quantity}</p>` : ''}
+                    </div>
+                    <div class="item-quantity text-lg font-bold text-teal-400 mr-4">${formatPrice(itemTotal)}</div>
+                    <button class="remove-item-button text-gray-400 hover:text-red-400" data-item-id="${item.id + (item.duration || '')}" aria-label="Remove ${product.name} from cart">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                `;
+                fragment.appendChild(cartItem);
+            });
+            cartItemsContainer.appendChild(fragment);
+        }
+        cartTotalPriceElement.textContent = formatPrice(total);
+        saveCartToFirestore();
+    }
+
+    function showOptionsModal(product) {
+        if (!optionsModalOverlay || !optionsModalContent || !optionsModalAddToCart) return;
+        const durationOptions = product.durationOptions || [];
+        const showQuantity = product.showQuantity || false;
+        let selectedDuration = durationOptions.length > 0 ? durationOptions[0] : null;
+        let quantity = 1;
+
+        optionsModalContent.innerHTML = `
+            <div class="duration-options mb-4">
+                ${durationOptions.length > 0 ? `
+                    <h3 class="text-sm font-semibold mb-2 text-gray-400 uppercase">Duration</h3>
+                    <div class="flex flex-wrap gap-2">
+                        ${durationOptions.map((option, index) => `
+                            <button class="duration-option text-sm px-3 py-1 border border-gray-600 rounded hover:bg-gray-600 transition-colors ${index === 0 ? 'active bg-gray-600' : ''}"
+                                    data-duration="${option}"
+                                    aria-pressed="${index === 0 ? 'true' : 'false'}">
+                                ${option}
+                            </button>
+                        `).join('')}
+                    </div>
+                ` : ''}
+            </div>
+            ${showQuantity ? `
+                <div class="quantity-selector-container mb-4">
+                    <h3 class="text-sm font-semibold mb-2 text-gray-400 uppercase">Quantity</h3>
+                    <div class="quantity-selector inline-flex">
+                        <button class="quantity-button minus bg-gray-600 hover:bg-gray-500 rounded-l px-3 py-1">-</button>
+                        <input type="number" value="1" min="1" class="quantity-input w-12 text-center bg-gray-700 border-t border-b border-gray-600" readonly>
+                        <button class="quantity-button plus bg-gray-600 hover:bg-gray-500 rounded-r px-3 py-1">+</button>
+                    </div>
+                </div>
+            ` : ''}
+        `;
+
+        optionsModalOverlay.classList.add('visible');
+        document.getElementById('options-modal-title').textContent = `Select Options for ${product.name}`;
+
+        optionsModalContent.querySelectorAll('.duration-option').forEach(button => {
+            button.addEventListener('click', () => {
+                optionsModalContent.querySelectorAll('.duration-option').forEach(btn => {
+                    btn.classList.remove('active', 'bg-gray-600');
+                    btn.setAttribute('aria-pressed', 'false');
+                });
+                button.classList.add('active', 'bg-gray-600');
+                button.setAttribute('aria-pressed', 'true');
+                selectedDuration = button.dataset.duration;
+            });
+        });
+
+        const quantityInput = optionsModalContent.querySelector('.quantity-input');
+        const minusButton = optionsModalContent.querySelector('.quantity-button.minus');
+        const plusButton = optionsModalContent.querySelector('.quantity-button.plus');
+
+        if (minusButton && plusButton && quantityInput) {
+            minusButton.addEventListener('click', () => {
+                if (quantity > 1) {
+                    quantity--;
+                    quantityInput.value = quantity;
+                }
+            });
+            plusButton.addEventListener('click', () => {
+                quantity++;
+                quantityInput.value = quantity;
+            });
+        }
+
+        optionsModalAddToCart.onclick = () => {
+            addItemToCart(product, quantity, selectedDuration);
+            hideOptionsModal();
+        };
+    }
+
+    function hideOptionsModal() {
+        if (optionsModalOverlay) optionsModalOverlay.classList.remove('visible');
+    }
+
+    function formatPrice(price) {
+        return `Tk ${price.toFixed(2)} BDT`;
+    }
+
+    function displayErrorMessage(message) {
+        const errorDiv = document.createElement('div');
+        errorDiv.className = 'error-message bg-red-500 text-white p-4 rounded mb-4 text-center';
+        errorDiv.textContent = message;
+        mainContent.insertBefore(errorDiv, mainContent.firstChild);
+        setTimeout(() => errorDiv.remove(), 5000);
+    }
+
+    function openMenu() {
+        if (sideMenu && menuOverlay) {
+            sideMenu.classList.add('open');
+            menuOverlay.classList.add('visible');
+            document.body.style.overflow = 'hidden';
+        }
+    }
+
+    function closeMenu() {
+        if (sideMenu && menuOverlay) {
+            sideMenu.classList.remove('open');
+            menuOverlay.classList.remove('visible');
+            document.body.style.overflow = '';
+        }
+    }
+
+    function showSearchBar() {
+        if (searchBarContainer && searchInput) {
+            searchBarContainer.classList.add('active');
+            searchInput.focus();
+            document.body.style.overflow = 'hidden';
+        }
+    }
+
+    function showLoginModal() {
+        if (loginModalOverlay && loginModal) {
+            loginModalOverlay.classList.add('visible');
+            loginModal.querySelector('#login-email')?.focus();
+            document.body.style.overflow = 'hidden';
+        }
+    }
+
+    function hideSearchBar() {
+        if (searchBarContainer && searchInput) {
+            searchBarContainer.classList.remove('active');
+            searchInput.value = '';
+            renderProducts(allProductsContainer, allProducts);
+            renderProducts(streamingPlatformsContainer, filterProductsByCategory('streaming-services'));
+            renderProducts(educationalServicesContainer, filterProductsByCategory('educational-tools'));
+            renderProducts(appleServicesContainer, filterProductsByCategory('apple-services'));
+            renderProducts(bestSellingProductsContainer, filterBestSellingProducts());
+            document.body.style.overflow = '';
+        }
+    }
+
+    function hideLoginModal() {
+        if (loginModalOverlay && loginForm) {
+            loginModalOverlay.classList.remove('visible');
+            loginForm.reset();
+            clearLoginError();
+            document.body.style.overflow = '';
+        }
+    }
+
+    function showCart() {
+        if (cartContainer) {
+            cartContainer.classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+    }
+
+    function hideCart() {
+        if (cartContainer) {
+            cartContainer.classList.remove('active');
+            document.body.style.overflow = '';
+        }
+    }
+
+    function goToSlide(index) {
+        if (!bannerSlidesContainer || !bannerIndicatorsContainer) return;
+        const slideCount = bannerSlidesContainer.children.length;
+        if (index < 0) index = slideCount - 1;
+        else if (index >= slideCount) index = 0;
+        currentSlideIndex = index;
+        bannerSlidesContainer.style.transform = `translateX(-${index * 100}%)`;
+        bannerIndicatorsContainer.querySelectorAll('.indicator-dot').forEach((dot, i) => {
+            dot.classList.toggle('active', i === index);
+            dot.classList.toggle('opacity-100', i === index);
+            dot.classList.toggle('opacity-50', i !== index);
+        });
+    }
+
+    function showNextSlide() {
+        goToSlide(currentSlideIndex + 1);
+        resetSlideInterval();
+    }
+
+    function showPrevSlide() {
+        goToSlide(currentSlideIndex - 1);
+        resetSlideInterval();
+    }
+
+    function startSlideShow() {
+        clearInterval(slideInterval);
+        slideInterval = setInterval(showNextSlide, BANNER_INTERVAL_MS);
+    }
+
+    function resetSlideInterval() {
+        clearInterval(slideInterval);
+        startSlideShow();
+    }
+
+    function showView(viewId) {
+        const views = {
+            'home': () => {
+                allProductsView.classList.remove('active');
+                categorizedProductsView.classList.add('active');
+                bestSellersSection.classList.add('active');
+                featuredProductSection.classList.add('active');
+                streamingPlatformsContainer.parentElement.classList.add('active');
+                educationalServicesContainer.parentElement.classList.add('active');
+                appleServicesContainer.parentElement.classList.add('active');
+                updateBreadcrumbs([{ label: 'Home', view: 'home' }]);
+            },
+            'all-products': () => {
+                allProductsView.classList.add('active');
+                categorizedProductsView.classList.remove('active');
+                bestSellersSection.classList.remove('active');
+                featuredProductSection.classList.remove('active');
+                updateBreadcrumbs([
+                    { label: 'Home', view: 'home' },
+                    { label: 'All Products', view: 'all-products' }
+                ]);
+            },
+            'streaming-services': () => {
+                allProductsView.classList.remove('active');
+                categorizedProductsView.classList.add('active');
+                bestSellersSection.classList.remove('active');
+                featuredProductSection.classList.remove('active');
+                streamingPlatformsContainer.parentElement.classList.add('active');
+                educationalServicesContainer.parentElement.classList.remove('active');
+                appleServicesContainer.parentElement.classList.remove('active');
+                updateBreadcrumbs([
+                    { label: 'Home', view: 'home' },
+                    { label: 'Streaming Services', view: 'streaming-services' }
+                ]);
+            },
+            'educational-tools': () => {
+                allProductsView.classList.remove('active');
+                categorizedProductsView.classList.add('active');
+                bestSellersSection.classList.remove('active');
+                featuredProductSection.classList.remove('active');
+                streamingPlatformsContainer.parentElement.classList.remove('active');
+                educationalServicesContainer.parentElement.classList.add('active');
+                appleServicesContainer.parentElement.classList.remove('active');
+                updateBreadcrumbs([
+                    { label: 'Home', view: 'home' },
+                    { label: 'Educational Tools', view: 'educational-tools' }
+                ]);
+            },
+            'apple-services': () => {
+                allProductsView.classList.remove('active');
+                categorizedProductsView.classList.add('active');
+                bestSellersSection.classList.remove('active');
+                featuredProductSection.classList.remove('active');
+                streamingPlatformsContainer.parentElement.classList.remove('active');
+                educationalServicesContainer.parentElement.classList.remove('active');
+                appleServicesContainer.parentElement.classList.add('active');
+                updateBreadcrumbs([
+                    { label: 'Home', view: 'home' },
+                    { label: 'Apple Services', view: 'apple-services' }
+                ]);
+            }
+        };
+
+        if (views[viewId]) {
+            views[viewId]();
+            closeMenu();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        } else {
+            console.warn(`View "${viewId}" not recognized.`);
+        }
+    }
+
+    function updateBreadcrumbs(pages) {
+        if (!breadcrumbs) return;
+        breadcrumbs.innerHTML = '';
+        const fragment = document.createDocumentFragment();
+        pages.forEach((page, index) => {
+            if (index > 0) {
+                const separator = document.createElement('span');
+                separator.className = 'separator';
+                separator.textContent = '>';
+                fragment.appendChild(separator);
+            }
+            const element = document.createElement(index === pages.length - 1 ? 'span' : 'a');
+            if (element.tagName === 'A') {
+                element.href = '#';
+                element.dataset.view = page.view;
+                element.className = 'breadcrumb-link hover:text-white';
+            } else {
+                element.className = 'current-page';
+            }
+            element.textContent = page.label;
+            fragment.appendChild(element);
+        });
+        breadcrumbs.appendChild(fragment);
+    }
+
+    function handleViewChange(event) {
+        event.preventDefault();
+        const viewId = event.currentTarget.dataset.view;
+        if (viewId) showView(viewId);
+    }
+
+    function handleSearchInput() {
+        const searchTerm = searchInput.value.trim();
+        const filteredProducts = filterProductsBySearch(searchTerm);
+        renderProducts(allProductsContainer, filteredProducts);
+        renderProducts(streamingPlatformsContainer, filteredProducts.filter(p => p.category === 'streaming-services'));
+        renderProducts(educationalServicesContainer, filteredProducts.filter(p => p.category === 'educational-tools'));
+        renderProducts(appleServicesContainer, filteredProducts.filter(p => p.category === 'apple-services'));
+        renderProducts(bestSellingProductsContainer, filteredProducts.filter(p => p.isBestSeller));
+    }
+
+    function handleProductCardInteraction(event) {
+        const target = event.target;
+        const productId = target.dataset.productId;
+        if (!productId) return;
+        const product = allProducts.find(p => p.id === productId);
+        if (!product) return;
+
+        if (target.classList.contains('add-to-cart-button')) {
+            addItemToCart(product, 1, null);
+        } else if (target.classList.contains('choose-options-button')) {
+            showOptionsModal(product);
+        } else if (target.classList.contains('duration-option')) {
+            const durationButtons = target.parentElement.querySelectorAll('.duration-option');
+            durationButtons.forEach(btn => {
+                btn.classList.remove('active', 'bg-gray-600');
+                btn.setAttribute('aria-pressed', 'false');
+            });
+            target.classList.add('active', 'bg-gray-600');
+            target.setAttribute('aria-pressed', 'true');
+        } else if (target.classList.contains('quantity-button')) {
+            const quantityInput = target.parentElement.querySelector('.quantity-input');
+            let currentQuantity = parseInt(quantityInput.value) || 1;
+            if (target.classList.contains('plus')) {
+                currentQuantity++;
+            } else if (target.classList.contains('minus') && currentQuantity > 1) {
+                currentQuantity--;
+            }
+            quantityInput.value = currentQuantity;
+        }
+    }
+
+    function addItemToCart(product, quantity = 1, duration = null) {
+        if (!product || product.isSoldOut) return;
+        const itemId = product.id + (duration || '');
+        const existingItem = cartItems.find(item => item.id === product.id && item.duration === duration);
+        if (existingItem) {
+            existingItem.quantity = (existingItem.quantity || 1) + quantity;
+        } else {
+            cartItems.push({
+                id: product.id,
+                name: product.name,
+                price: product.price,
+                imageUrl: product.imageUrl,
+                quantity: quantity,
+                duration: duration
+            });
+        }
+        renderCartItems();
+    }
+
+    function removeItemFromCart(itemId) {
+        cartItems = cartItems.filter(item => (item.id + (item.duration || '')) !== itemId);
+        renderCartItems();
+    }
+
+    function handleFeaturedBuyNow() {
+        const featuredProduct = allProducts.find(p => p.id === 'general1');
+        if (featuredProduct) {
+            addItemToCart(featuredProduct, 1, featuredProduct.durationOptions[0]);
+        } else {
+            alert('Featured product not available.');
+        }
+    }
+</script>
 </body>
 </html>
